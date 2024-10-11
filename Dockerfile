@@ -5,14 +5,14 @@ FROM python:3.11-slim AS builder
 RUN apt-get update && apt-get install -y curl git libcurl3-gnutls libcurl4-gnutls-dev
 
 # Set work directory
-WORKDIR /app
+WORKDIR /project
 
 # Add Pipfile and Pipfile.lock
-ADD Pipfile.lock Pipfile /app/
+ADD Pipfile.lock Pipfile /project/
 
 # Create virtual environment and install dependencies using pipenv
-RUN python -m venv /app/.venv
-ENV PATH="/app/.venv/bin:$PATH"
+RUN python -m venv /project/.venv
+ENV PATH="/project/.venv/bin:$PATH"
 RUN pip install --upgrade pip
 RUN pip install pipenv
 RUN pipenv install --deploy --ignore-pipfile
@@ -24,14 +24,14 @@ RUN python -c "import requests; print(requests.__version__)"
 FROM python:3.11-slim AS runner
 
 # Set work directory
-WORKDIR /app
+WORKDIR /project
 
 # Copy application files and virtual environment from the builder stage
-COPY --from=builder /app /app
+COPY --from=builder /project /cannon_project
 
 # Set environment variables for Python to use the virtual environment
-ENV VIRTUAL_ENV=/app/.venv
+ENV VIRTUAL_ENV=/project/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Test to ensure virtualenv Django works properly
-CMD ["python", "-m", "django", "--version"]
+# link the cannon project's .venv to the /project/.venv and run bash 
+CMD ["bash", "-c", "ln -s /cannon_project/.venv /project/.venv && bash"]
