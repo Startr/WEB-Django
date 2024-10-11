@@ -1,6 +1,6 @@
 # Startr/WEB-Django
 
-## v0.0.0
+## v0.0.1
 
 Welcome to the foundation of Startr/WEB-Django.
 
