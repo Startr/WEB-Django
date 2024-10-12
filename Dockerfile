@@ -23,6 +23,12 @@ RUN python -c "import requests; print(requests.__version__)"
 # Final stage: create the runner image
 FROM python:3.11-slim AS runner
 
+RUN apt update \
+  && apt-get install --yes  sqlite3 \
+  && apt-get autoremove --yes \
+  && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
+
 # Set work directory
 WORKDIR /project
 
