@@ -4,7 +4,7 @@
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
 [![Docker Stars](https://img.shields.io/docker/stars/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
-[![Docker Build Status](https://img.shields.io/docker/cloud/build/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django) 
+[![Docker Build Status](https://img.shields.io/docker/cloud/build/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
 
 Welcome to the foundation of Startr/WEB-Django.
 
@@ -13,10 +13,10 @@ In the early days, we needed a solution that was simple, fast, and effective. On
 ## Run it with:
 
 ```bash
-bash <(curl -sL startr.sh) run
+make it_run
 ```
 
-This mounts your project directory into `/project`, letting you jump straight into coding. It’s fast and efficient—just what’s needed for smooth development. 
+This mounts your project directory into `/project`, letting you jump straight into coding. It’s fast and efficient—just what’s needed for smooth development.
 
 We’ve kept it lean and streamlined—no unnecessary frills, just pure productivity. If you've struggled with environments before, this will feel like a relief.
 
@@ -25,6 +25,10 @@ We’ve kept it lean and streamlined—no unnecessary frills, just pure producti
 - **Seamless setup**: One Dockerfile gives you a fully configured Python 3.11 environment with Django and `requests`—all ready to go.
 - **Efficient multi-stage build**: The Dockerfile’s multi-stage build keeps the final image small and production-ready.
 - **Consistent development**: No more mismatched dependencies—`pipenv` ensures a clean, reproducible virtual environment every time.
+- With `bash <(curl -sL startr.sh) run` and Startr/WEB-Django our
+  repository is automaticly mounted into you container for rappid
+ devlopment
+- Simple versioning with our awsome make targets :D
 
 ## How to Get Started
 
