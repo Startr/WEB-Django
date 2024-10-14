@@ -7,7 +7,11 @@ class Person(models.Model):
     role = models.CharField(max_length=20, choices=[('participant', 'Participant'), ('facilitator', 'Facilitator')])
 
     def __str__(self):
-        return self.user.get_full_name() or self.user.username
+        return f"{self.user.get_full_name() or self.user.username} ({self.role})"
+
+    def is_active(self):
+        """Returns True if the user is active based on their last login time."""
+        return self.user.last_login >= timezone.now() - timezone.timedelta(days=30)
 
 
 class Group(models.Model):
