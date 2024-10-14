@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 django = "==4.2"
 requests = "*"
+pillow = "*"
+ipython = "*"
 
 [dev-packages]
 

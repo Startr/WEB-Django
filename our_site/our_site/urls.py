@@ -21,3 +21,7 @@ urlpatterns = [
     path("courses/", include("courses.urls")),
     path("admin/", admin.site.urls),
 ]
+
+admin.site.site_header = "Sage Admin"
+admin.site.site_title = "Sage.Education Admin Portal"
+admin.site.index_title = "Welcome to your Sage.Education admin panel"
