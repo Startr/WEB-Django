@@ -1,6 +1,6 @@
 # Startr/WEB-Django
 
-## v0.1.0
+## v0.2.0
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
 [![Docker Stars](https://img.shields.io/docker/stars/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
