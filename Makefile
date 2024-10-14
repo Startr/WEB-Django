@@ -1,7 +1,7 @@
 help: 
-	@echo ""
-	@echo "Startr/WEB-Django by Startr.Cloud"
-	@echo ""
+	@echo "================================================"
+	@echo "       Startr/WEB-Django by Startr.Cloud"
+	@echo "================================================"
 	@echo "This is the default make command."
 	@echo "This command lists available make commands."
 	@echo ""
