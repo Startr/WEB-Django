@@ -34,6 +34,7 @@ WORKDIR /project
 
 # Copy application files and virtual environment from the builder stage
 COPY --from=builder /project /cannon_project
+COPY --from=builder /project /project
 
 # Set environment variables for Python to use the virtual environment
 ENV VIRTUAL_ENV=/project/.venv
