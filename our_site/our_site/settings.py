@@ -28,6 +28,9 @@ DEBUG = True
 # SECURITY WARNING: update this when you have the production host
 ALLOWED_HOSTS = ['*']
 
+# SECURITY WARNING: update this when you have the production host
+CSRF_TRUSTED_ORIGINS = ["*"]
+
 
 # Application definition
 
