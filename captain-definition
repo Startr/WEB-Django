@@ -1,0 +1,24 @@
+{
+    "schemaVersion": 2,
+    "dockerfileLines": [
+        "# syntax=docker/dockerfile:1",
+        "FROM python:3.11-slim AS builder",
+        "RUN apt-get update && apt-get install -y curl git libcurl3-gnutls libcurl4-gnutls-dev",
+        "WORKDIR /project",
+        "ADD Pipfile.lock Pipfile /project/",
+        "RUN python -m venv /project/.venv",
+        "ENV PATH=\"/project/.venv/bin:$PATH\"",
+        "RUN pip install --upgrade pip",
+        "RUN pip install pipenv",
+        "RUN pipenv install --deploy --ignore-pipfile",
+        "RUN python -c \"import requests; print(requests.__version__)\"",
+        "FROM python:3.11-slim AS runner",
+        "RUN apt update && apt-get install --yes sqlite3 && apt-get autoremove --yes && rm -rf /var/lib/{apt,dpkg,cache,log}/",
+        "WORKDIR /project",
+        "COPY --from=builder /project /cannon_project",
+        "ENV VIRTUAL_ENV=/project/.venv",
+        "ENV PATH=\"$VIRTUAL_ENV/bin:$PATH\"",
+        "CMD [ \"bash\", \"-c\", \"ln -s /cannon_project/.venv /project/.venv && python our_site/manage.py runserver 0.0.0.0:8080\" ]"
+    ]
+  }
+  
