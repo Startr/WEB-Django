@@ -19,7 +19,7 @@
         "COPY --from=builder /project /project",
         "ENV VIRTUAL_ENV=/project/.venv",
         "ENV PATH=\"$VIRTUAL_ENV/bin:$PATH\"",
-        "CMD [ \"bash\", \"-c\", \"ln -s /cannon_project/.venv /project/.venv && python /project/our_site/manage.py runserver 0.0.0.0:8080 & bash\" ]"
+        "CMD [ \"bash\", \"-c\", \"ln -s /cannon_project/.venv /project/.venv && python /project/our_site/manage.py runserver 0.0.0.0:8080\" ]"
     ]
   }
   
