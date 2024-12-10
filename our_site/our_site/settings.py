@@ -35,7 +35,7 @@ CSRF_TRUSTED_ORIGINS = ["https://startr-django.production.openco.ca"]
 # Application definition
 
 INSTALLED_APPS = [
-    'courses',
+    'experiences',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
