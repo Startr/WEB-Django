@@ -43,6 +43,9 @@ class Group(models.Model):
     core_competency_2 = models.ForeignKey('CoreCompetency', on_delete=models.SET_NULL, null=True, blank=True, related_name='group_core_2')
     core_competency_3 = models.ForeignKey('CoreCompetency', on_delete=models.SET_NULL, null=True, blank=True, related_name='group_core_3')
 
+    class Meta:
+        verbose_name_plural = "Activity Groups"
+
     def __str__(self):
         return self.name
 
@@ -56,6 +59,9 @@ class Participation(models.Model):
     elementary = models.BooleanField(default=False)  # Elementary level participation
     high = models.BooleanField(default=False)  # High school level participation
 
+    class Meta:
+        verbose_name_plural = "All Activity Participation"
+
     def __str__(self):
         return f"{self.person} in {self.group} ({', '.join(map(str, self.years))})"
 
@@ -64,6 +70,9 @@ class CoreCompetency(models.Model):
     title = models.CharField(max_length=100, unique=True)  # Unique title for the competency
     description = models.TextField(blank=True)  # Optional description
     is_active = models.BooleanField(default=True)  # Whether the competency is active
+
+    class Meta:
+        verbose_name_plural = "Core Competencies"
 
     def __str__(self):
         return f"{self.title} ({'Active' if self.is_active else 'Inactive'})"
