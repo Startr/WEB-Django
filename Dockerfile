@@ -35,6 +35,9 @@ WORKDIR /project
 # Copy application files and virtual environment from the builder stage
 COPY --from=builder /project /cannon_project
 
+# Add our_site to the container
+ADD our_site /project/our_site
+
 # Set environment variables for Python to use the virtual environment
 ENV VIRTUAL_ENV=/project/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"

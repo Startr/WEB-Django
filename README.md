@@ -1,6 +1,6 @@
 # Startr/WEB-Django
 
-## v0.2.1
+## v0.3.1
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
 [![Docker Stars](https://img.shields.io/docker/stars/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
@@ -14,6 +14,9 @@ In the early days, we needed a solution that was simple, fast, and effective. On
 
 ```bash
 make it_run
+# This will launch the container and mount the project directory into the container
+# You can now start developing your Django project with the following command
+python manage.py makemigrations && python manage.py migrate && python /project/our_site/manage.py runserver 0.0.0.0:8080
 ```
 
 This mounts your project directory into `/project`, letting you jump straight into coding. It’s fast and efficient—just what’s needed for smooth development.
@@ -41,4 +44,10 @@ git clone https://github.com/Startr/WEB-Django/
 cd WEB-Django
 bash <(curl -sL startr.sh) run
 ```
+
+### 2. Start Developing
+
+### 3. Push to Production
+
+When you’re ready to deploy, push your code to a production server. You can use the same Docker image to run your Django app in production.
 
