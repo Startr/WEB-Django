@@ -36,6 +36,7 @@ CSRF_TRUSTED_ORIGINS = ["https://startr-django.production.openco.ca"]
 
 INSTALLED_APPS = [
     'experiences',
+    'startr_style',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
