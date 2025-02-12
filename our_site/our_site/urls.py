@@ -15,13 +15,23 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path
+from django.conf import settings
+from django.urls import path, re_path, include
+
+from django_startr.views import debug_index
 
 urlpatterns = [
     path("experiences/", include("experiences.urls")),
     path('accounts/', include('django.contrib.auth.urls')),
     path("admin/", admin.site.urls),
 ]
+
+handler404 = 'django_startr.views.debug_index'
+
+if settings.DEBUG:
+    urlpatterns += [
+        re_path(r'^.*$', debug_index),
+    ]
 
 admin.site.site_header = "Startr Admin"
 admin.site.site_title = "Startr Education Admin Portal"
