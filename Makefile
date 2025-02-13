@@ -19,6 +19,9 @@ it_run:
 it_build:
 	@bash -c 'bash <(curl -sL startr.sh) build'
 
+it_startr:
+	git restore ./our_site/experiences/ && git clean -fd ./our_site/experiences/ && docker exec -it web-django-develop bash -c "cd /project/our_site && ./manage.py startr experiences && ./manage.py runserver 0.0.0.0:8000"
+
 minor_release:
 	# Start a minor release with incremented minor version
 	git flow release start $$(git tag --sort=-v:refname | sed 's/^v//' | head -n 1 | awk -F'.' '{print $$1"."$$2+1".0"}')
