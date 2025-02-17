@@ -20,7 +20,13 @@ it_build:
 	@bash -c 'bash <(curl -sL startr.sh) build'
 
 it_startr:
-	git restore ./our_site/experiences/ && git clean -fd ./our_site/experiences/ && docker exec -it web-django-develop bash -c "cd /project/our_site && ./manage.py startr experiences && ./manage.py runserver 0.0.0.0:8000"
+	# @bash -c 'fswatch -r -v -e ".*" ./our_site/django_startr/ | while read changed_path; do \
+	# 	echo "Detected change in $$changed_path"; \
+	# 	git restore ./our_site/experiences/ && git clean -fd ./our_site/experiences/; \
+	# 	docker exec -it web-django-develop bash -c "cd /project/our_site && ./manage.py startr experiences && ./manage.py runserver 0.0.0.0:8000"; \
+	# done'
+	git restore ./our_site/experiences/ && git clean -fd ./our_site/experiences/; \
+	docker exec -it web-django-develop bash -c "cd /project/our_site && ./manage.py startr experiences && ./manage.py runserver 0.0.0.0:8000";
 
 minor_release:
 	# Start a minor release with incremented minor version
