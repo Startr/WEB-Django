@@ -1,0 +1,21 @@
+{% extends "experiences/participation_base.html" %}
+
+{% block title %}
+    All Activity Participation
+{% endblock %}
+
+{% block content %}
+    <h2>All Activity Participation</h2>
+    <h3><a href={% url "experiences:participation_create" %}>Create new Participation</a></h3>
+    <ul>
+    {% for participation in participation_list %}
+        <li>
+            <a href={% url "experiences:participation_detail" participation.pk %}>{{ participation }}</a> 
+    </form>
+</li>
+    {% empty %}
+        <li>No All Activity Participation yet.</li>
+    {% endfor %}
+    </ul>
+{% endblock %}
+
