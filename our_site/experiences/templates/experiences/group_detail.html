@@ -31,6 +31,13 @@
                 </li>
             
         </ul>
+
+        <h4>Members</h4>
+        <ul>
+            {% for member in group.members.all %}
+                <li>{{ member }}</li>
+            {% endfor %}
+        </ul>
     <form style="display:inline;" action={% url "experiences:group_delete" group.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ group }}?')">{% csrf_token %}
         
     </form>
