@@ -31,6 +31,7 @@ class GroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'core_competency_1', 'core_competency_2', 'core_competency_3')
     search_fields = ('name', 'description')
     filter_horizontal = ('members',)
+    inlines = [ParticipationInline]
 
 
 @admin.register(Participation)
