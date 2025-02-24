@@ -16,9 +16,14 @@ class RoleAdmin(admin.ModelAdmin):
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('user', 'role', 'is_active', 'get_participations')
-    list_filter = ('role', 'user__is_active')
+    @admin.display(description='Full Name')
+    def get_full_name(self, obj):
+        return obj.user.get_full_name() or obj.user.username
+
+    list_display = ('get_full_name', 'graduating_year', 'role', 'is_active', 'get_participations')
+    list_filter = ('role', 'user__is_active', 'graduating_year')
     search_fields = ('user__username', 'user__first_name', 'user__last_name')
+    fields = ('user', 'graduating_year', 'role', 'profile_picture')
     inlines = [ParticipationInline]
 
     def is_active(self, obj):

@@ -14,9 +14,10 @@ class Role(models.Model):
 
 
 class Person(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Connects to the Django user model
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
-    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)  # Connects to Role model
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    graduating_year = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} ({self.role.title if self.role else 'No Role'})"
