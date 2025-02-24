@@ -6,8 +6,8 @@
 
 {% block content %}
     <h2>Activity Groups</h2>
-    <h3><a href={% url "experiences:group_create" %}>Create new Group</a></h3>
-    <ul>
+    <h3><a href={% url "experiences:group_create" %}>Create new Group</a></h3>   
+<hr>    <ul>
     {% for group in group_list %}
         <li>
             <a href={% url "experiences:group_detail" group.pk %}>{{ group }}</a> 

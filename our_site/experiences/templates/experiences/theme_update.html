@@ -6,8 +6,8 @@
 
 {% block content %}
 <h2><a href={% url "experiences:theme_list" %}>Theme</a></h2>
-<h3>Update {{ theme }}</h3>
-
+<h3>Update {{ theme }}</h3>   
+<hr>
 <form action="" method="post">
     {% csrf_token %}
     {{ form.as_p }}

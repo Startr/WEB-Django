@@ -6,8 +6,8 @@
 
 {% block content %}
     <h2>Core Competencies</h2>
-    <h3><a href={% url "experiences:core_competency_create" %}>Create new Core Competency</a></h3>
-    <ul>
+    <h3><a href={% url "experiences:core_competency_create" %}>Create new Core Competency</a></h3>   
+<hr>    <ul>
     {% for core_competency in core_competency_list %}
         <li>
             <a href={% url "experiences:core_competency_detail" core_competency.pk %}>{{ core_competency }}</a> 

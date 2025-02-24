@@ -6,8 +6,8 @@
 
 {% block content %}
     <h2>Themes</h2>
-    <h3><a href={% url "experiences:theme_create" %}>Create new Theme</a></h3>
-    <ul>
+    <h3><a href={% url "experiences:theme_create" %}>Create new Theme</a></h3>   
+<hr>    <ul>
     {% for theme in theme_list %}
         <li>
             <a href={% url "experiences:theme_detail" theme.pk %}>{{ theme }}</a> 

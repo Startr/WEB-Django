@@ -6,8 +6,8 @@
 
 {% block content %}
     <h2>Roles</h2>
-    <h3><a href={% url "experiences:role_create" %}>Create new Role</a></h3>
-    <ul>
+    <h3><a href={% url "experiences:role_create" %}>Create new Role</a></h3>   
+<hr>    <ul>
     {% for role in role_list %}
         <li>
             <a href={% url "experiences:role_detail" role.pk %}>{{ role }}</a> 

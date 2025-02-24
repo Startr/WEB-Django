@@ -6,18 +6,14 @@
 
 {% block content %}
     <h2><a href={% url "experiences:group_list" %}>Group</a></h2>
-    <h3>{{ group }} | <a href={% url "experiences:group_update" group.pk %}>Update</a></h3>
-        
+    <h3>{{ group }} | <a href={% url "experiences:group_update" group.pk %}>Update</a></h3>   
+    <p> 
+        {{ group.description }} 
+    </p>
+ 
         <ul>
             
-                <li>
-                    name: {{ group.name }}
-                </li>
-            
-                <li>
-                    description: {{ group.description }}
-                </li>
-            
+               
                 <li>
                     Core Competency 1: {{ group.core_competency_1 }}
                 </li>
