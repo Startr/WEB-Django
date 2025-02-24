@@ -7,7 +7,15 @@
 {% block content %}
     <h2>Themes</h2>
     <h3><a href={% url "experiences:theme_create" %}>Create new Theme</a></h3>   
-<hr>    <ul>
+    <hr>
+    <input type="text" placeholder="Search..." id="search"
+        _="on keyup
+        if the event's key is 'Escape'
+        set my value to ''
+        trigger keyup
+        else
+        show <li/> in #theme_list when its textContent contains my value">
+    <ul id="theme_list">
     {% for theme in theme_list %}
         <li>
             <a href={% url "experiences:theme_detail" theme.pk %}>{{ theme }}</a> 

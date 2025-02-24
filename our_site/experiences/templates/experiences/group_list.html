@@ -7,12 +7,19 @@
 {% block content %}
     <h2>Activity Groups</h2>
     <h3><a href={% url "experiences:group_create" %}>Create new Group</a></h3>   
-<hr>    <ul>
+    <hr>
+    <input type="text" placeholder="Search..." id="search"
+        _="on keyup
+        if the event's key is 'Escape'
+        set my value to ''
+        trigger keyup
+        else
+        show <li/> in #group_list when its textContent contains my value">
+    <ul id="group_list">
     {% for group in group_list %}
         <li>
             <a href={% url "experiences:group_detail" group.pk %}>{{ group }}</a> 
-    </form>
-</li>
+    </li>
     {% empty %}
         <li>No Activity Groups yet.</li>
     {% endfor %}

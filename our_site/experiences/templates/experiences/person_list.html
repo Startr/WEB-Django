@@ -6,8 +6,17 @@
 
 {% block content %}
     <h2>People</h2>
-    <h3><a href={% url "experiences:person_create" %}>Create new Person</a></h3>   
-<hr>    <ul id="people">
+    <h3><a href={% url "experiences:person_create" %}>Create new Person</a></h3>
+    <hr> 
+    <input type="text" placeholder="Search..." id="search" 
+     _="on keyup
+         if the event's key is 'Escape'
+           set my value to ''
+           trigger keyup
+         else
+          show <li/> in #people when its textContent contains my value">
+      
+    <ul id="people">
     {% for person in person_list %}
         <li>
             <a href={% url "experiences:person_detail" person.pk %}>{{ person }} <person_graduating_year>{{ person.graduating_year }}</person_graduating_year></a>
