@@ -7,12 +7,11 @@
 {% block content %}
     <h2>People</h2>
     <h3><a href={% url "experiences:person_create" %}>Create new Person</a></h3>
-    <ul>
+    <ul id="people">
     {% for person in person_list %}
         <li>
-            <a href={% url "experiences:person_detail" person.pk %}>{{ person }}</a> 
-    </form>
-</li>
+            <a href={% url "experiences:person_detail" person.pk %}>{{ person }} <person_graduating_year>{{ person.graduating_year }}</person_graduating_year></a>
+        </li>
     {% empty %}
         <li>No People yet.</li>
     {% endfor %}
