@@ -9,17 +9,13 @@
     <h3>{{ person }} | <a href={% url "experiences:person_update" person.pk %}>Update</a></h3>   
 <hr>        
         <ul>
-            
+                <li>Graduating:<person_graduating_year>{{ person.graduating_year }}</person_graduating_year></li>
                 <li>
-                    user: {{ person.user }}
+                    Photo: {{ person.profile_picture }}
                 </li>
             
                 <li>
-                    profile_picture: {{ person.profile_picture }}
-                </li>
-            
-                <li>
-                    role: {{ person.role }}
+                    Role: {{ person.role }}
                 </li>
             
         </ul>
