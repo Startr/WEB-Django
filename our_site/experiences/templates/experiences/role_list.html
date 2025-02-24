@@ -19,8 +19,8 @@
     {% for role in role_list %}
         <li>
             <a href={% url "experiences:role_detail" role.pk %}>{{ role }}</a> 
-    </form>
-</li>
+
+        </li>
     {% empty %}
         <li>No Roles yet.</li>
     {% endfor %}
