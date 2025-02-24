@@ -15,6 +15,11 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+MEDIA_URL = '/media/'
+# TODO change it so that it so that media is stored in a media folder in the base directory
+# MEDIA_ROOT = BASE_DIR / 'media'
+# At the moment, the media root is the base directory which is not ideal
+MEDIA_ROOT = BASE_DIR 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/

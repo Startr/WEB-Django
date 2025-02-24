@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.conf import settings
 from django.urls import path, re_path, include
+from django.conf.urls.static import static
+
 
 from django_startr.views import debug_index
 
@@ -24,7 +26,7 @@ urlpatterns = [
     path("experiences/", include("experiences.urls")),
     path('accounts/', include('django.contrib.auth.urls')),
     path("admin/", admin.site.urls),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'django_startr.views.debug_index'
 
