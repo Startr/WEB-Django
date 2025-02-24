@@ -8,13 +8,13 @@
     <h2>Activity Groups</h2>
     <h3><a href={% url "experiences:group_create" %}>Create new Group</a></h3>   
     <hr>
-    <input type="text" placeholder="Search..." id="search"
-        _="on keyup
-        if the event's key is 'Escape'
-        set my value to ''
-        trigger keyup
-        else
-        show <li/> in #group_list when its textContent contains my value">
+    <input type="text" placeholder="Search..." id="search" 
+        _="on keyup 
+            if the event's key is 'Escape'
+                set my value to '' 
+                trigger keyup
+            else
+                show <li/> in #group_list when its textContent.toLowerCase() contains my value.toLowerCase()">  
     <ul id="group_list">
     {% for group in group_list %}
         <li>

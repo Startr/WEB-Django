@@ -6,21 +6,20 @@
 
 {% block content %}
     <h2>Core Competencies</h2>
-    <h3><a href={% url "experiences:core_competency_create" %}>Create new Core Competency</a></h3>   
+    <h3><a href={% url "experiences:core_competency_create" %}>Create new CoreCompetency</a></h3>   
     <hr>
-    <input type="text" placeholder="Search..." id="search"
-        _="on keyup
-        if the event's key is 'Escape'
-        set my value to ''
-        trigger keyup
-        else
-        show <li/> in #core_competency_list when its textContent contains my value">
+    <input type="text" placeholder="Search..." id="search" 
+        _="on keyup 
+            if the event's key is 'Escape'
+                set my value to '' 
+                trigger keyup
+            else
+                show <li/> in #core_competency_list when its textContent.toLowerCase() contains my value.toLowerCase()">  
     <ul id="core_competency_list">
     {% for core_competency in core_competency_list %}
         <li>
             <a href={% url "experiences:core_competency_detail" core_competency.pk %}>{{ core_competency }}</a> 
-    </form>
-</li>
+    </li>
     {% empty %}
         <li>No Core Competencies yet.</li>
     {% endfor %}

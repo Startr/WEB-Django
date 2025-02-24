@@ -6,21 +6,20 @@
 
 {% block content %}
     <h2>People</h2>
-    <h3><a href={% url "experiences:person_create" %}>Create new Person</a></h3>
-    <hr> 
+    <h3><a href={% url "experiences:person_create" %}>Create new Person</a></h3>   
+    <hr>
     <input type="text" placeholder="Search..." id="search" 
-     _="on keyup
-         if the event's key is 'Escape'
-           set my value to ''
-           trigger keyup
-         else
-          show <li/> in #people when its textContent contains my value">
-      
-    <ul id="people">
+        _="on keyup 
+            if the event's key is 'Escape'
+                set my value to '' 
+                trigger keyup
+            else
+                show <li/> in #person_list when its textContent.toLowerCase() contains my value.toLowerCase()">  
+    <ul id="person_list">
     {% for person in person_list %}
         <li>
-            <a href={% url "experiences:person_detail" person.pk %}>{{ person }} <person_graduating_year>{{ person.graduating_year }}</person_graduating_year></a>
-        </li>
+            <a href={% url "experiences:person_detail" person.pk %}>{{ person }}</a> 
+    </li>
     {% empty %}
         <li>No People yet.</li>
     {% endfor %}
