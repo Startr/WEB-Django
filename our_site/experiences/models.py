@@ -90,16 +90,6 @@ class Theme(models.Model):
         return f"Theme for {self.group.name}"
 
 
-class ParticipationInline(admin.TabularInline):
-    model = Participation
-    extra = 1  # Allows adding new participations directly from the Person admin page
-
-
-class PersonAdmin(admin.ModelAdmin):
-    list_display = ('user', 'role', 'is_active', 'get_participations')
-    list_filter = ('role', 'user__is_active')
-    search_fields = ('user__username', 'user__first_name', 'user__last_name')
-    inlines = [ParticipationInline]
 
 
 
