@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Role, Person, Group, Participation, CoreCompetency, Theme
+from .models import *
 
 
 class ParticipationInline(admin.TabularInline):
@@ -61,3 +61,16 @@ class CoreCompetencyAdmin(admin.ModelAdmin):
 class ThemeAdmin(admin.ModelAdmin):
     list_display = ('group', 'font_choices', 'color_palette', 'logo', 'background_image')
     search_fields = ('group__name',)
+
+
+@admin.register(Pathways)
+class PathwaysAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('title', 'description')
+
+@admin.register(Badges)
+class BadgesAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('title', 'description')
