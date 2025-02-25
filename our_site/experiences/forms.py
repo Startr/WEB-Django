@@ -1,5 +1,5 @@
 from django import forms
-from .models import Role, Person, Group, Participation, CoreCompetency, Theme
+from .models import Role, Person, Group, Participation, CoreCompetency, Theme, Badges, Pathways
 
 
 class RoleForm(forms.ModelForm):
@@ -291,3 +291,96 @@ class ThemeForm(forms.ModelForm):
     def save(self, commit=True):
         return super(ThemeForm, self).save(commit)
 
+
+class BadgesForm(forms.ModelForm):
+
+    class Meta:
+        model = Badges
+        fields = ['title', 'description', 'is_active']
+        exclude = []
+        widgets = None
+        localized_fields = None
+        labels = {}
+        help_texts = {}
+        error_messages = {}
+
+    def __init__(self, *args, **kwargs):
+        return super(BadgesForm, self).__init__(*args, **kwargs)
+
+    def is_valid(self):
+        return super(BadgesForm, self).is_valid()
+
+    def full_clean(self):
+        return super(BadgesForm, self).full_clean()
+
+    def clean_title(self):
+        title = self.cleaned_data.get("title", None)
+        return title
+
+    def clean_description(self):
+        description = self.cleaned_data.get("description", None)
+        return description
+
+    def clean_is_active(self):
+        is_active = self.cleaned_data.get("is_active", None)
+        return is_active
+
+    def clean(self):
+        return super(BadgesForm, self).clean()
+
+    def validate_unique(self):
+        return super(BadgesForm, self).validate_unique()
+
+    def save(self, commit=True):
+        return super(BadgesForm, self).save(commit)
+
+
+class PathwaysForm(forms.ModelForm):
+
+    class Meta:
+        model = Pathways
+        fields = ['title', 'description', 'core_competencies', 'groups', 'is_active']
+        exclude = []
+        widgets = None
+        localized_fields = None
+        labels = {}
+        help_texts = {}
+        error_messages = {}
+
+    def __init__(self, *args, **kwargs):
+        return super(PathwaysForm, self).__init__(*args, **kwargs)
+
+    def is_valid(self):
+        return super(PathwaysForm, self).is_valid()
+
+    def full_clean(self):
+        return super(PathwaysForm, self).full_clean()
+
+    def clean_title(self):
+        title = self.cleaned_data.get("title", None)
+        return title
+
+    def clean_description(self):
+        description = self.cleaned_data.get("description", None)
+        return description
+
+    def clean_core_competencies(self):
+        core_competencies = self.cleaned_data.get("core_competencies", None)
+        return core_competencies
+
+    def clean_groups(self):
+        groups = self.cleaned_data.get("groups", None)
+        return groups
+
+    def clean_is_active(self):
+        is_active = self.cleaned_data.get("is_active", None)
+        return is_active
+
+    def clean(self):
+        return super(PathwaysForm, self).clean()
+
+    def validate_unique(self):
+        return super(PathwaysForm, self).validate_unique()
+
+    def save(self, commit=True):
+        return super(PathwaysForm, self).save(commit)    
