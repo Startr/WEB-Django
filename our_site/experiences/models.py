@@ -90,6 +90,36 @@ class Theme(models.Model):
         return f"Theme for {self.group.name}"
 
 
+class Pathways(models.Model):
+    title = models.CharField(max_length=100, unique=True)  # Unique title for the pathway
+    description = models.TextField(blank=True)  # Optional description
+    core_competencies = models.ManyToManyField(CoreCompetency)  # Connects to core competencies
+    groups = models.ManyToManyField(Group)  # Connects to groups
+    is_active = models.BooleanField(default=True)  # Whether the pathway is active
 
+    class Meta:
+        verbose_name_plural = "Pathways"
 
+    def __str__(self):
+        return self.title
 
+    def long_title(self):
+        return f"{self.title} (is made of {', '.join(map(str, self.core_competencies.all()))})"
+
+class Badges(models.Model):
+    title = models.CharField(max_length=100, unique=True)  # Unique title for the badge
+    description = models.TextField(blank=True)  # Optional description
+    image = models.ImageField(upload_to='badges/', null=True, blank=True)
+    core_competencies = models.ManyToManyField(CoreCompetency)  # Connects to core competencies
+    is_active = models.BooleanField(default=True)  # Whether the badge is active
+
+    class Meta:
+        verbose_name_plural = "Badges"
+
+    def __str__(self):
+        return self.title
+
+    def image_tag(self):
+        return format_html('<img src="{}" style="max-width: 100px; max-height: 100px;" />', self.image.url)
+
+    
