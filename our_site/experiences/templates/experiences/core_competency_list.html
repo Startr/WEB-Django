@@ -1,12 +1,13 @@
 {% extends "experiences/core_competency_base.html" %}
-
 {% block title %}
     Core Competencies
 {% endblock %}
 
 {% block content %}
     <h2>Core Competencies</h2>
-    <h3><a href={% url "experiences:core_competency_create" %}>Create new CoreCompetency</a></h3>   
+    {%if user.is_staff or user.is_superuser %}
+        <h3><a href={% url "experiences:core_competency_create" %}>Create new CoreCompetency</a></h3>   
+    {% endif %} 
     <hr>
     <input type="text" placeholder="Search..." id="search" 
         _="on keyup 
@@ -18,7 +19,7 @@
     <ul id="core_competency_list">
     {% for core_competency in core_competency_list %}
         <li>
-            <a href={% url "experiences:core_competency_detail" core_competency.pk %}>{{ core_competency }}</a> 
+            <a href={% url "experiences:core_competency_detail" core_competency.pk %}>{{ core_competency|capfirst  }}</a> 
     </li>
     {% empty %}
         <li>No Core Competencies yet.</li>

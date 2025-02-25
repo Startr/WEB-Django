@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+    {% if user.is_staff or user.is_superuser %}
     <h2>Themes</h2>
     <h3><a href={% url "experiences:theme_create" %}>Create new Theme</a></h3>   
     <hr>
@@ -24,5 +25,8 @@
         <li>No Themes yet.</li>
     {% endfor %}
     </ul>
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">login</a> to see themes.</p>
+    {% endif %}
 {% endblock %}
 

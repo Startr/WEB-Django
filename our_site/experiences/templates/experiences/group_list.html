@@ -6,7 +6,9 @@
 
 {% block content %}
     <h2>Activity Groups</h2>
-    <h3><a href={% url "experiences:group_create" %}>Create new Group</a></h3>   
+    {% if user.is_staff or user.is_superuser %}
+        <h3><a href={% url "experiences:group_create" %}>Create new Group</a></h3>
+    {% endif %}   
     <hr>
     <input type="text" placeholder="Search..." id="search" 
         _="on keyup 

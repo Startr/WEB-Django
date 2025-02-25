@@ -1,28 +1,34 @@
 {% extends "experiences/participation_base.html" %}
-
+{% load startr_filters %}
 {% block title %}
     All Activity Participation
 {% endblock %}
 
 {% block content %}
     <h2>All Activity Participation</h2>
-    <h3><a href={% url "experiences:participation_create" %}>Create new Participation</a></h3>   
-    <hr>
-    <input type="text" placeholder="Search..." id="search" 
-        _="on keyup 
-            if the event's key is 'Escape'
-                set my value to '' 
-                trigger keyup
-            else
-                show <li/> in #participation_list when its textContent.toLowerCase() contains my value.toLowerCase()">  
-    <ul id="participation_list">
-    {% for participation in participation_list %}
-        <li>
-            <a href={% url "experiences:participation_detail" participation.pk %}>{{ participation }}</a> 
-    </li>
-    {% empty %}
-        <li>No All Activity Participation yet.</li>
-    {% endfor %}
-    </ul>
+    {%if user.is_authenticated %}
+        {% if user.is_staff or user.is_superuser %}
+            <h3><a href={% url "experiences:participation_create" %}>Create new Participation</a></h3>
+        {% endif %}   
+        <hr>
+        <input type="text" placeholder="Search..." id="search" 
+            _="on keyup 
+                if the event's key is 'Escape'
+                    set my value to '' 
+                    trigger keyup
+                else
+                    show <li/> in #participation_list when its textContent.toLowerCase() contains my value.toLowerCase()">  
+        <ul id="participation_list">
+        {% for participation in participation_list %}
+            <li>
+                <a href={% url "experiences:participation_detail" participation.pk %}>{{ participation }}</a> 
+        </li>
+        {% empty %}
+            <li>No All Activity Participation yet.</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">login</a> to see participation info.</p>
+    {% endif %}
 {% endblock %}
 
