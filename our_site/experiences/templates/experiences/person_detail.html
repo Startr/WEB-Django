@@ -5,22 +5,23 @@
 {% endblock %}
 
 {% block content %}
-    <h2><a href={% url "experiences:person_list" %}>Person</a></h2>
-    <h3>{{ person }} | <a href={% url "experiences:person_update" person.pk %}>Update</a></h3>   
-<hr>        
-        <ul>
+    <h2><a href={% url "experiences:person_list" %}>People</a></h2>
+    {% if user.is_authenticated %}
+        <h3>{{ person }} | <a href={% url "experiences:person_update" person.pk %}>Update</a></h3>   
+        <hr>        
+        <ul style="--lis: none;">
+                <li>Photo: {{ person.profile_picture }}</li>
                 <li>Graduating:<person_graduating_year>{{ person.graduating_year }}</person_graduating_year></li>
                 <li>
-                    Photo: {{ person.profile_picture }}
-                </li>
-            
-                <li>
                     Role: {{ person.role }}
-                </li>
+                </li> 
             
         </ul>
-    <form style="display:inline;" action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
-        
-    </form>
+        <form style="display:inline;" action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
+            
+        </form>
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">login</a> to view this profile.</p>
+    {% endif %}
 
 {% endblock %}

@@ -8,7 +8,7 @@
     <h2><a href={% url "experiences:participation_list" %}>Participation</a></h2>
     <h3>{{ participation }} | <a href={% url "experiences:participation_update" participation.pk %}>Update</a></h3>   
 <hr>        
-        <ul>
+        <ul style="--lis: none;">
             
                 <li>
                     person: {{ participation.person }}

@@ -6,12 +6,16 @@
 
 {% block content %}
     <h2><a href={% url "experiences:group_list" %}>Group</a></h2>
-    <h3>{{ group }} | <a href={% url "experiences:group_update" group.pk %}>Update</a></h3>   
+    <h3>{{ group }} 
+        {% if user.is_staff or user.is_superuser %}
+        | <a href={% url "experiences:group_update" group.pk %}>Update</a>
+        {% endif %}
+    </h3>   
     <p> 
         {{ group.description }} 
     </p>
  
-        <ul>
+        <ul style="--lis: none;">
             
                
                 <li>
@@ -28,12 +32,15 @@
             
         </ul>
 
-        <h4>Members</h4>
-        <ul>
+        {% if user.is_authenticated %}
+            <h4>Members</h4>
+            <ul style="--lis: none;">
             {% for member in group.members.all %}
                 <li>{{ member }}</li>
             {% endfor %}
-        </ul>
+            </ul>
+        {% endif %}
+
     <form style="display:inline;" action={% url "experiences:group_delete" group.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ group }}?')">{% csrf_token %}
         
     </form>
