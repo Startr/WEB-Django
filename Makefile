@@ -5,13 +5,40 @@ help:
 	@echo "This is the default make command."
 	@echo "This command lists available make commands."
 	@echo ""
-	@echo "Usage example:"
+	@echo "Usage examples:"
 	@echo "    make it_run"
+	@echo "    make django migrate"
+	@echo "    make django runserver 0.0.0.0:8000"
 	@echo ""
 	@echo "Available make commands:"
 	@echo ""
 	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'
 	@echo ""
+
+# Docker container name
+CONTAINER = web-django-develop
+
+# Django management commands
+bash:
+	docker exec -it $(CONTAINER) bash
+
+django:
+	@if [ "$(filter-out $@,$(MAKECMDGOALS))" = "" ]; then \
+		echo "Usage: make django <command>"; \
+		echo "Examples:"; \
+		echo "  make django migrate"; \
+		echo "  make django makemigrations"; \
+		echo "  make django runserver 0.0.0.0:8080"; \
+	else \
+		docker exec -it $(CONTAINER) bash -c "cd /project/our_site && python manage.py $(filter-out $@,$(MAKECMDGOALS))"; \
+	fi
+
+# This allows passing arguments to django target
+%:
+	@:
+
+setup_groups:
+	docker exec -it $(CONTAINER) bash -c "cd /project/our_site && python manage.py setup_groups"
 
 it_run:
 	@bash -c 'bash <(curl -sL startr.sh) run'
