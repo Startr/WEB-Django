@@ -6,6 +6,7 @@ from ..forms import GroupForm
 from django.urls import reverse_lazy
 from django.urls import reverse
 from django.http import Http404
+from django.core.exceptions import PermissionDenied
 
 
 class GroupListView(ListView):
@@ -27,7 +28,8 @@ class GroupListView(ListView):
         return super(GroupListView, self).get(request, *args, **kwargs)
 
     def get_queryset(self):
-        return super(GroupListView, self).get_queryset().order_by('name')
+        # Everyone can see all groups
+        return super().get_queryset().order_by('name')
 
     def get_allow_empty(self):
         return super(GroupListView, self).get_allow_empty()
@@ -162,8 +164,29 @@ class GroupUpdateView(UpdateView):
     def __init__(self, **kwargs):
         return super(GroupUpdateView, self).__init__(**kwargs)
 
-    def dispatch(self, *args, **kwargs):
-        return super(GroupUpdateView, self).dispatch(*args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        # Get the object
+        self.object = self.get_object()
+        
+        # Check if user has permission to edit
+        if not self.has_change_permission(request):
+            raise PermissionDenied
+            
+        return super().dispatch(request, *args, **kwargs)
+
+    def has_change_permission(self, request):
+        # Superusers can edit anything
+        if request.user.is_superuser:
+            return True
+        # Administrators can edit any group
+        if request.user.groups.filter(name='Administrators').exists():
+            return True
+        # Check if the user is a facilitator and a member of this group
+        try:
+            person = request.user.person
+            return person.role.title == 'Facilitator' and person in self.object.members.all()
+        except:
+            return False
 
     def get(self, request, *args, **kwargs):
         return super(GroupUpdateView, self).get(request, *args, **kwargs)
@@ -228,8 +251,15 @@ class GroupDeleteView(DeleteView):
     def __init__(self, **kwargs):
         return super(GroupDeleteView, self).__init__(**kwargs)
 
-    def dispatch(self, *args, **kwargs):
-        return super(GroupDeleteView, self).dispatch(*args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        # Get the object
+        self.object = self.get_object()
+        
+        # Only superusers and administrators can delete
+        if not (request.user.is_superuser or request.user.groups.filter(name='Administrators').exists()):
+            raise PermissionDenied
+            
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         raise Http404

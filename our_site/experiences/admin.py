@@ -22,11 +22,11 @@ class VisibilityModelAdmin(admin.ModelAdmin):
         if obj.is_public:
             return format_html(
                 '<span style="background-color: #28a745; color: white; padding: 3px 10px; border-radius: 10px;">'
-                '✓ Public</span>'
+                '✓&NonBreakingSpace;Public</span>'
             )
         return format_html(
             '<span style="background-color: #dc3545; color: white; padding: 3px 10px; border-radius: 10px;">'
-            '✕ Private</span>'
+            '✕&NonBreakingSpace;Private</span>'
         )
     visibility_badge.short_description = 'Visibility'
     
@@ -62,7 +62,49 @@ class PersonAdmin(VisibilityModelAdmin):
 
     def is_active(self, obj):
         return obj.user.is_active
-    is_active.boolean = True  # Display as a boolean icon in the admin
+    is_active.boolean = True
+
+    def has_change_permission(self, request, obj=None):
+        if not obj:  # This is the list view
+            return True
+        # Superusers can edit anything
+        if request.user.is_superuser:
+            return True
+        # Administrators can edit any person
+        if request.user.groups.filter(name='Administrators').exists():
+            return True
+        # Users can edit their own profile
+        return obj and obj.user == request.user
+
+    def has_delete_permission(self, request, obj=None):
+        if not obj:  # This is the list view
+            return True
+        # Only superusers and administrators can delete
+        return request.user.is_superuser or request.user.groups.filter(name='Administrators').exists()
+
+    def has_view_permission(self, request, obj=None):
+        # Everyone with admin access can view
+        return True
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        if request.user.groups.filter(name='Administrators').exists():
+            return qs
+        # Regular users can only see their own profile
+        return qs.filter(user=request.user)
+
+    def save_model(self, request, obj, form, change):
+        if not change:  # This is a new object
+            if not request.user.is_superuser and not request.user.groups.filter(name='Administrators').exists():
+                obj.user = request.user  # Force the user to be the current user
+        super().save_model(request, obj, form, change)
+
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.is_superuser and not request.user.groups.filter(name='Administrators').exists():
+            return ('user',)  # Regular users can't change the user field
+        return super().get_readonly_fields(request, obj)
 
 
 @admin.register(Group)
@@ -72,6 +114,36 @@ class GroupAdmin(VisibilityModelAdmin):
     list_filter = ('is_public', 'core_competency_1', 'core_competency_2', 'core_competency_3')
     filter_horizontal = ('members',)
     inlines = [ParticipationInline]
+
+    def has_view_permission(self, request, obj=None):
+        # Everyone can view all groups
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        if not obj:  # This is the list view
+            return True
+        # Superusers can edit anything
+        if request.user.is_superuser:
+            return True
+        # Administrators can edit any group
+        if request.user.groups.filter(name='Administrators').exists():
+            return True
+        # Check if the user is a facilitator and a member of this group
+        try:
+            person = request.user.person
+            return person.role.title == 'Facilitator' and person in obj.members.all()
+        except:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if not obj:  # This is the list view
+            return True
+        # Only superusers and administrators can delete
+        return request.user.is_superuser or request.user.groups.filter(name='Administrators').exists()
+
+    def get_queryset(self, request):
+        # Everyone can see all groups
+        return super().get_queryset(request)
 
 
 @admin.register(Participation)
