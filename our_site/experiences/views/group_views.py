@@ -27,7 +27,7 @@ class GroupListView(ListView):
         return super(GroupListView, self).get(request, *args, **kwargs)
 
     def get_queryset(self):
-        return super(GroupListView, self).get_queryset()
+        return super(GroupListView, self).get_queryset().order_by('name')
 
     def get_allow_empty(self):
         return super(GroupListView, self).get_allow_empty()
