@@ -6,7 +6,7 @@
 {% block content %}
     <h2>Core Competencies</h2>
     {%if user.is_staff or user.is_superuser %}
-        <h3><a href={% url "experiences:core_competency_create" %}>Create new CoreCompetency</a></h3>   
+        <h3><a href={% url "experiences:core_competency_create" %}>Create new Core Competency</a></h3>   
     {% endif %} 
     <hr>
     <input type="text" placeholder="Search..." id="search" 
