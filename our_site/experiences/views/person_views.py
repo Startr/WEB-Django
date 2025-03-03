@@ -27,7 +27,7 @@ class PersonListView(ListView):
         return super(PersonListView, self).get(request, *args, **kwargs)
 
     def get_queryset(self):
-        return super(PersonListView, self).get_queryset()
+        return super(PersonListView, self).get_queryset().order_by('graduating_year', 'user__first_name', 'user__last_name')
 
     def get_allow_empty(self):
         return super(PersonListView, self).get_allow_empty()

@@ -21,8 +21,11 @@
     <ul id="person_list">
     {% for person in person_list %}
         <li>
-            <a href={% url "experiences:person_detail" person.pk %}>{{ person }}</a> 
-    </li>
+            <a href={% url "experiences:person_detail" person.pk %}>{{ person }}</a>
+            {% if person.graduating_year %}
+                (Class of {{ person.graduating_year }})
+            {% endif %}
+        </li>
     {% empty %}
         <li>No People yet.</li>
     {% endfor %}
