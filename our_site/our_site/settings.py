@@ -42,7 +42,6 @@ CSRF_TRUSTED_ORIGINS = ["https://startr-django.production.openco.ca"]
 INSTALLED_APPS = [
     'django_startr',
     'experiences',
-    'startr_style',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -59,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'experiences.middleware.ModelVisibilityMiddleware',
 ]
 
 ROOT_URLCONF = 'our_site.urls'

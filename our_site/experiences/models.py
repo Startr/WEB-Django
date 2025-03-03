@@ -4,6 +4,16 @@ from django.utils import timezone
 from django.contrib import admin
 from django.utils.html import format_html
 
+class BaseVisibilityModel(models.Model):
+    is_public = models.BooleanField(
+        default=True,
+        help_text="Controls whether this item is visible to the public"
+    )
+    last_modified = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        abstract = True
+
 class Role(models.Model):
     title = models.CharField(max_length=50, unique=True)  # Unique title for the role
     description = models.TextField(blank=True)  # Optional description of the role
@@ -13,7 +23,7 @@ class Role(models.Model):
         return f"{self.title} ({'Active' if self.is_active else 'Inactive'})"
 
 
-class Person(models.Model):
+class Person(BaseVisibilityModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
@@ -36,7 +46,7 @@ class Person(models.Model):
         verbose_name_plural = "People"
 
 
-class Group(models.Model):
+class Group(BaseVisibilityModel):
     name = models.CharField(max_length=100)
     members = models.ManyToManyField('Person', through='Participation')
     description = models.TextField(blank=True)
@@ -121,5 +131,45 @@ class Badges(models.Model):
 
     def image_tag(self):
         return format_html('<img src="{}" style="max-width: 100px; max-height: 100px;" />', self.image.url)
+
+class ModelVisibilitySettings(models.Model):
+    MODEL_CHOICES = [
+        ('person', 'People'),
+        ('group', 'Activity Groups'),
+        ('participation', 'Participations'),
+        ('role', 'Roles'),
+        ('pathways', 'Pathways'),
+        ('badges', 'Badges'),
+    ]
+
+    ACCESS_LEVELS = [
+        ('public', 'Public - Anyone can view'),
+        ('authenticated', 'Authenticated - Any logged in user'),
+        ('staff', 'Staff Only'),
+        ('disabled', 'Disabled - No access (404)'),
+    ]
+
+    model_name = models.CharField(
+        max_length=50, 
+        choices=MODEL_CHOICES,
+        unique=True,
+        help_text="Select which model's visibility to control"
+    )
+    access_level = models.CharField(
+        max_length=20,
+        choices=ACCESS_LEVELS,
+        default='staff',
+        help_text="Who can access this model's views"
+    )
+    last_modified = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name = "Model Visibility Setting"
+        verbose_name_plural = "Model Visibility Settings"
+        ordering = ['model_name']
+
+    def __str__(self):
+        return f"{self.get_model_name_display()} - {self.get_access_level_display()}"
 
     
