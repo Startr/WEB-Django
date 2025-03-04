@@ -38,6 +38,10 @@ COPY --from=builder /project /cannon_project
 # Add our_site to the container
 ADD our_site /project/our_site
 
+# Add our_submodules to the container
+ADD our_submodules /project/our_submodules
+
+
 # Set environment variables for Python to use the virtual environment
 ENV VIRTUAL_ENV=/project/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
