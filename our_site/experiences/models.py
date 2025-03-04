@@ -24,7 +24,7 @@ class Role(BaseVisibilityModel):
 
 class Person(BaseVisibilityModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='media/profile_pictures/', null=True, blank=True)
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True, related_name='people')
     graduating_year = models.IntegerField(null=True, blank=True)
     guardians = models.ManyToManyField('self', through='GuardianStudent', 
@@ -112,8 +112,8 @@ class Theme(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)  # Connects each theme to a group
     color_palette = models.JSONField()  # Stores color values
     font_choices = models.CharField(max_length=100)  # Specify the font choice
-    logo = models.ImageField(upload_to='logos/', null=True, blank=True)
-    background_image = models.ImageField(upload_to='backgrounds/', null=True, blank=True)
+    logo = models.ImageField(upload_to='media/logos/', null=True, blank=True)
+    background_image = models.ImageField(upload_to='media/backgrounds/', null=True, blank=True)
 
     def __str__(self):
         return f"Theme for {self.group.name}"
@@ -138,7 +138,7 @@ class Pathways(models.Model):
 class Badges(models.Model):
     title = models.CharField(max_length=100, unique=True)  # Unique title for the badge
     description = models.TextField(blank=True)  # Optional description
-    image = models.ImageField(upload_to='badges/', null=True, blank=True)
+    image = models.ImageField(upload_to='media/badges/', null=True, blank=True)
     core_competencies = models.ManyToManyField(CoreCompetency)  # Connects to core competencies
     is_active = models.BooleanField(default=True)  # Whether the badge is active
 
@@ -149,7 +149,9 @@ class Badges(models.Model):
         return self.title
 
     def image_tag(self):
-        return format_html('<img src="{}" style="max-width: 100px; max-height: 100px;" />', self.image.url)
+        if self.image:
+            return format_html('<img src="{}" width="50" height="50" />', self.image.url)
+        return "No Image"
 
 class ModelVisibilitySettings(models.Model):
     MODEL_CHOICES = [

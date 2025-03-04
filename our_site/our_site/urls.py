@@ -24,7 +24,8 @@ from django_startr.views import debug_index, debug_permission_denied
 
 urlpatterns = [
     path("experiences/", include("experiences.urls")),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('auth/', include('django.contrib.auth.urls')),
     path("admin/", admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

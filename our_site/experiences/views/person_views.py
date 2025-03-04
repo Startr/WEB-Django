@@ -28,13 +28,45 @@ class PersonListView(ListView):
         return super(PersonListView, self).get(request, *args, **kwargs)
 
     def get_queryset(self):
-        return super(PersonListView, self).get_queryset().order_by('graduating_year', 'user__first_name', 'user__last_name')
+        queryset = super(PersonListView, self).get_queryset().order_by('graduating_year', 'user__first_name', 'user__last_name')
+        
+        # If user is not authenticated, don't show any people
+        if not self.request.user.is_authenticated:
+            return queryset.none()
+            
+        # Superusers and administrators can see all people
+        if self.request.user.is_superuser or self.request.user.groups.filter(name='Administrators').exists():
+            return queryset
+            
+        user_person = None
+        try:
+            user_person = self.request.user.person
+        except Person.DoesNotExist:
+            # If the user doesn't have a person profile, only show public records
+            return queryset.filter(is_public=True)
+            
+        # Get IDs of the user's own profile and their students
+        person_ids = [user_person.id]
+        person_ids.extend(user_person.students.values_list('id', flat=True))
+        
+        # Return only the user's own profile and their students
+        return queryset.filter(id__in=person_ids)
 
     def get_allow_empty(self):
         return super(PersonListView, self).get_allow_empty()
 
     def get_context_data(self, *args, **kwargs):
         ret = super(PersonListView, self).get_context_data(*args, **kwargs)
+        
+        # Add information about which people are the user's students
+        if self.request.user.is_authenticated:
+            try:
+                user_person = self.request.user.person
+                students_ids = list(user_person.students.values_list('id', flat=True))
+                ret['students_ids'] = students_ids
+            except Person.DoesNotExist:
+                ret['students_ids'] = []
+                
         return ret
 
     def get_paginate_by(self, queryset):

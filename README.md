@@ -23,15 +23,58 @@ This mounts your project directory into `/project`, letting you jump straight in
 
 We've kept it lean and streamlined—no unnecessary frills, just pure productivity. If you've struggled with environments before, this will feel like a relief.
 
+## Makefile Commands
+
+This project includes a Makefile to make development tasks easier:
+
+```bash
+# Run Django management commands
+make django cmd='command'  # Example: make django cmd='migrate'
+
+# Access the Docker container shell
+make bash
+
+# Set up Django groups
+make setup_groups
+
+# Run the development server
+make it_run
+
+# Build the Docker image
+make it_build
+
+# Generate code with Django Startr
+make it_startr
+```
+
+## Recent Updates
+
+### Media Management
+- Reorganized media files into a proper `/media` structure
+- Updated settings to use the new media structure
+- Created a script (`move_media.py`) to migrate existing media files
+- Added proper media upload handling for profile pictures
+
+### User Experience Improvements
+- Enhanced person listing to show relationships between guardians and students
+- Added badges to clearly identify user's own profile and their students
+- Created a new accounts app with dashboard and profile management
+- Implemented proper permission checks for viewing student information
+
+### Guardian-Student Relationship
+- Updated views to filter students based on guardian relationships
+- Added visual indicators for student-guardian relationships
+- Enhanced account dashboard to show student and guardian information
+
 ## Why Use This?
 
 - **Seamless setup**: One Dockerfile gives you a fully configured Python 3.11 environment with Django and `requests`—all ready to go.
 - **Efficient multi-stage build**: The Dockerfile's multi-stage build keeps the final image small and production-ready.
 - **Consistent development**: No more mismatched dependencies—`pipenv` ensures a clean, reproducible virtual environment every time.
 - With `bash <(curl -sL startr.sh) run` and Startr/WEB-Django our
-  repository is automaticly mounted into you container for rappid
- devlopment
-- Simple versioning with our awsome make targets :D
+  repository is automatically mounted into your container for rapid
+  development
+- Simple versioning with our awesome make targets :D
 
 ## Django Startr Code Generator
 

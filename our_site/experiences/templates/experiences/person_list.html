@@ -25,11 +25,40 @@
             {% if person.graduating_year %}
                 (Class of {{ person.graduating_year }})
             {% endif %}
+            
+            {% if person.user == user %}
+                <span class="badge badge-primary">Your profile</span>
+            {% elif person.id in students_ids %}
+                <span class="badge badge-secondary">Your student</span>
+            {% endif %}
         </li>
     {% empty %}
-        <li>No People yet.</li>
+        <li>No people found.</li>
     {% endfor %}
     </ul>
+    
+    <style>
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.4em;
+            font-size: 75%;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.25rem;
+            margin-left: 0.5rem;
+        }
+        .badge-primary {
+            color: #fff;
+            background-color: #007bff;
+        }
+        .badge-secondary {
+            color: #fff;
+            background-color: #6c757d;
+        }
+    </style>
     {% else %}
         <p>Please <a href="{% url 'login' %}">login</a> to see profiles.</p>
     {% endif %}
