@@ -20,7 +20,7 @@ from django.urls import path, re_path, include
 from django.conf.urls.static import static
 
 
-from django_startr.views import debug_index
+from django_startr.views import debug_index, debug_permission_denied
 
 urlpatterns = [
     path("experiences/", include("experiences.urls")),
@@ -29,6 +29,7 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'django_startr.views.debug_index'
+handler403 = 'django_startr.views.debug_permission_denied'
 
 if settings.DEBUG:
     urlpatterns += [
