@@ -14,20 +14,23 @@ class BaseVisibilityModel(models.Model):
     class Meta:
         abstract = True
 
-class Role(models.Model):
-    title = models.CharField(max_length=50, unique=True)  # Unique title for the role
-    description = models.TextField(blank=True)  # Optional description of the role
-    is_active = models.BooleanField(default=True)  # Whether this role is currently active
+class Role(BaseVisibilityModel):
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.title} ({'Active' if self.is_active else 'Inactive'})"
-
+        return self.title
 
 class Person(BaseVisibilityModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
-    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True, related_name='people')
     graduating_year = models.IntegerField(null=True, blank=True)
+    guardians = models.ManyToManyField('self', through='GuardianStudent', 
+                                     symmetrical=False,
+                                     through_fields=('student', 'guardian'),
+                                     related_name='students')
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} ({self.role.title if self.role else 'No Role'})"
@@ -45,6 +48,22 @@ class Person(BaseVisibilityModel):
     class Meta:
         verbose_name_plural = "People"
 
+class GuardianStudent(models.Model):
+    guardian = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='guardian_relationships')
+    student = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='student_relationships')
+    relationship = models.CharField(max_length=50, help_text="e.g., Parent, Legal Guardian, Grandparent")
+    date_added = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True, help_text="Whether this relationship is currently active")
+    notes = models.TextField(blank=True, help_text="Any additional notes about this relationship")
+
+    class Meta:
+        verbose_name = "Guardian-Student Relationship"
+        verbose_name_plural = "Guardian-Student Relationships"
+        unique_together = ('guardian', 'student')
+        ordering = ['-date_added']
+
+    def __str__(self):
+        return f"{self.guardian} is {self.relationship} of {self.student}"
 
 class Group(BaseVisibilityModel):
     name = models.CharField(max_length=100)

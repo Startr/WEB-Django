@@ -48,17 +48,79 @@ class RoleAdmin(admin.ModelAdmin):
     search_fields = ('title',)
 
 
+class GuardianStudentInline(admin.TabularInline):
+    model = GuardianStudent
+    fk_name = 'student'
+    extra = 1
+    verbose_name = "Guardian"
+    verbose_name_plural = "Guardians"
+
+
+class StudentGuardianInline(admin.TabularInline):
+    model = GuardianStudent
+    fk_name = 'guardian'
+    extra = 1
+    verbose_name = "Student"
+    verbose_name_plural = "Students"
+
+
+@admin.register(GuardianStudent)
+class GuardianStudentAdmin(admin.ModelAdmin):
+    list_display = ('guardian', 'relationship', 'student', 'is_active', 'date_added')
+    list_filter = ('is_active', 'relationship', 'date_added')
+    search_fields = ('guardian__user__username', 'guardian__user__first_name', 'guardian__user__last_name',
+                    'student__user__username', 'student__user__first_name', 'student__user__last_name')
+    raw_id_fields = ('guardian', 'student')
+    date_hierarchy = 'date_added'
+
+    def has_change_permission(self, request, obj=None):
+        if not obj:  # This is the list view
+            return True
+        # Superusers can edit anything
+        if request.user.is_superuser:
+            return True
+        # Administrators can edit any relationship
+        if request.user.groups.filter(name='Administrators').exists():
+            return True
+        # Guardians can edit their own relationships
+        return obj and (obj.guardian.user == request.user or obj.student.user == request.user)
+
+    def has_delete_permission(self, request, obj=None):
+        if not obj:  # This is the list view
+            return True
+        # Only superusers and administrators can delete
+        return request.user.is_superuser or request.user.groups.filter(name='Administrators').exists()
+
+
 @admin.register(Person)
 class PersonAdmin(VisibilityModelAdmin):
     @admin.display(description='Full Name')
     def get_full_name(self, obj):
         return obj.user.get_full_name() or obj.user.username
 
-    list_display = ('get_full_name', 'visibility_badge', 'graduating_year', 'role', 'is_active', 'get_participations', 'last_modified')
-    list_filter = ('is_public', 'role', 'user__is_active', 'graduating_year')
-    search_fields = ('user__username', 'user__first_name', 'user__last_name')
+    @admin.display(description='Guardians')
+    def get_guardians(self, obj):
+        guardians = obj.guardians.all()
+        if not guardians:
+            return "-"
+        return ", ".join([str(g) for g in guardians])
+
+    @admin.display(description='Students')
+    def get_students(self, obj):
+        students = obj.students.all()
+        if not students:
+            return "-"
+        return ", ".join([str(s) for s in students])
+
+    list_display = ('get_full_name', 'visibility_badge', 'graduating_year', 'role', 'is_active', 
+                   'get_participations', 'get_guardians', 'get_students', 'last_modified')
+    list_filter = ('is_public', 'role', 'user__is_active', 'graduating_year', 
+                  'guardian_relationships__is_active', 'student_relationships__is_active')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name', 
+                    'guardian_relationships__student__user__username',
+                    'student_relationships__guardian__user__username')
     fields = ('user', 'graduating_year', 'role', 'profile_picture', 'is_public')
-    inlines = [ParticipationInline]
+    inlines = [ParticipationInline, GuardianStudentInline, StudentGuardianInline]
 
     def is_active(self, obj):
         return obj.user.is_active
