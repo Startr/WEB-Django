@@ -152,7 +152,21 @@ class ParticipationForm(forms.ModelForm):
         error_messages = {}
 
     def __init__(self, *args, **kwargs):
-        return super(ParticipationForm, self).__init__(*args, **kwargs)
+        self.user = kwargs.pop('user', None)
+        super(ParticipationForm, self).__init__(*args, **kwargs)
+        
+        # Restrict person choices based on user permissions
+        if self.user and not (self.user.is_superuser or self.user.groups.filter(name='Administrators').exists()):
+            try:
+                # If not admin/superuser, only allow selecting themselves
+                person = Person.objects.get(user=self.user)
+                self.fields['person'].queryset = Person.objects.filter(id=person.id)
+                self.fields['person'].initial = person
+                self.fields['person'].widget.attrs['disabled'] = True  # Make it read-only
+                self.fields['person'].required = False  # Not required in form since we'll set it in save
+            except Person.DoesNotExist:
+                # If no person record, empty queryset
+                self.fields['person'].queryset = Person.objects.none()
 
     def is_valid(self):
         return super(ParticipationForm, self).is_valid()
@@ -162,6 +176,14 @@ class ParticipationForm(forms.ModelForm):
 
     def clean_person(self):
         person = self.cleaned_data.get("person", None)
+        
+        # If the field is disabled, it won't be in cleaned_data, so we need to get it manually
+        if not person and self.user and not (self.user.is_superuser or self.user.groups.filter(name='Administrators').exists()):
+            try:
+                person = Person.objects.get(user=self.user)
+            except Person.DoesNotExist:
+                raise forms.ValidationError("User profile not found.")
+                
         return person
 
     def clean_group(self):
@@ -195,7 +217,19 @@ class ParticipationForm(forms.ModelForm):
         return super(ParticipationForm, self).validate_unique()
 
     def save(self, commit=True):
-        return super(ParticipationForm, self).save(commit)
+        instance = super(ParticipationForm, self).save(commit=False)
+        
+        # If person is None (because disabled field), set it
+        if instance.person is None and self.user and not (self.user.is_superuser or self.user.groups.filter(name='Administrators').exists()):
+            try:
+                instance.person = Person.objects.get(user=self.user)
+            except Person.DoesNotExist:
+                pass
+                
+        if commit:
+            instance.save()
+            
+        return instance
 
 
 class CoreCompetencyForm(forms.ModelForm):
