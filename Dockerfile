@@ -2,7 +2,7 @@
 FROM python:3.11-slim AS builder
 
 # Install necessary dependencies
-RUN apt-get update && apt-get install -y curl git libcurl3-gnutls libcurl4-gnutls-dev
+RUN apt-get update && apt-get install -y curl git libcurl3-gnutls libcurl4-gnutls-dev && rm -rf /var/lib/apt/lists/*
 
 # Set work directory
 WORKDIR /project
