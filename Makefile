@@ -5,10 +5,8 @@ help:
 	@echo "This is the default make command."
 	@echo "This command lists available make commands."
 	@echo ""
-	@echo "Usage examples:"
+	@echo "Usage example:"
 	@echo "    make it_run"
-	@echo "    make django migrate"
-	@echo "    make django runserver 0.0.0.0:8000"
 	@echo ""
 	@echo "Available make commands:"
 	@echo ""
@@ -23,19 +21,12 @@ bash:
 	docker exec -it $(CONTAINER) bash
 
 django:
-	@if [ "$(filter-out $@,$(MAKECMDGOALS))" = "" ]; then \
-		echo "Usage: make django <command>"; \
-		echo "Examples:"; \
-		echo "  make django migrate"; \
-		echo "  make django makemigrations"; \
-		echo "  make django runserver 0.0.0.0:8080"; \
+	@if [ "$(cmd)" = "" ]; then \
+		echo "Usage: make django cmd='command'"; \
+		echo "Example: make django cmd='migrate'"; \
 	else \
-		docker exec -it $(CONTAINER) bash -c "cd /project/our_site && python manage.py $(filter-out $@,$(MAKECMDGOALS))"; \
+		docker exec -it $(CONTAINER) bash -c "cd /project/our_site && python manage.py $(cmd)"; \
 	fi
-
-# This allows passing arguments to django target
-%:
-	@:
 
 setup_groups:
 	docker exec -it $(CONTAINER) bash -c "cd /project/our_site && python manage.py setup_groups"
