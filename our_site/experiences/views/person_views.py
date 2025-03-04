@@ -6,6 +6,7 @@ from ..forms import PersonForm
 from django.urls import reverse_lazy
 from django.urls import reverse
 from django.http import Http404
+from django.core.exceptions import PermissionDenied
 
 
 class PersonListView(ListView):
@@ -73,7 +74,30 @@ class PersonDetailView(DetailView):
         return super(PersonDetailView, self).get(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
-        return super(PersonDetailView, self).get_object(queryset)
+        obj = super().get_object(queryset)
+        user = self.request.user
+
+        # Check if user has permission to view this profile
+        if not user.is_authenticated:
+            raise PermissionDenied("Please log in to view profiles.")
+        
+        # Superusers and administrators can view all profiles
+        if user.is_superuser or user.groups.filter(name='Administrators').exists():
+            return obj
+
+        # Users can view their own profile
+        if obj.user == user:
+            return obj
+
+        # Guardians can view their students' profiles
+        if user.person.students.filter(id=obj.id).exists():
+            return obj
+
+        # Students can view their guardians' profiles
+        if user.person.guardians.filter(id=obj.id).exists():
+            return obj
+
+        raise PermissionDenied("You don't have permission to view this profile.")
 
     def get_queryset(self):
         return super(PersonDetailView, self).get_queryset()
@@ -82,8 +106,19 @@ class PersonDetailView(DetailView):
         return super(PersonDetailView, self).get_slug_field()
 
     def get_context_data(self, **kwargs):
-        ret = super(PersonDetailView, self).get_context_data(**kwargs)
-        return ret
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        person = self.object
+
+        # Add edit permission context
+        can_edit = (
+            user.is_superuser or 
+            user.groups.filter(name='Administrators').exists() or
+            person.user == user
+        )
+        context['can_edit'] = can_edit
+
+        return context
 
     def get_context_object_name(self, obj):
         return super(PersonDetailView, self).get_context_object_name(obj)
