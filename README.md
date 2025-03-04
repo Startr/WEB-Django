@@ -1,6 +1,8 @@
 # Startr/WEB-Django
 
-## v0.3.1
+## v0.4
+
+## Major new features and functionality.
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
 [![Docker Stars](https://img.shields.io/docker/stars/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
