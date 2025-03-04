@@ -4,19 +4,33 @@ from django.utils import timezone
 from django.contrib import admin
 from django.utils.html import format_html
 
-class Role(models.Model):
-    title = models.CharField(max_length=50, unique=True)  # Unique title for the role
-    description = models.TextField(blank=True)  # Optional description of the role
-    is_active = models.BooleanField(default=True)  # Whether this role is currently active
+class BaseVisibilityModel(models.Model):
+    is_public = models.BooleanField(
+        default=True,
+        help_text="Controls whether this item is visible to the public"
+    )
+    last_modified = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        abstract = True
+
+class Role(BaseVisibilityModel):
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.title} ({'Active' if self.is_active else 'Inactive'})"
+        return self.title
 
-
-class Person(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Connects to the Django user model
-    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
-    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)  # Connects to Role model
+class Person(BaseVisibilityModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    profile_picture = models.ImageField(upload_to='media/profile_pictures/', null=True, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True, related_name='people')
+    graduating_year = models.IntegerField(null=True, blank=True)
+    guardians = models.ManyToManyField('self', through='GuardianStudent', 
+                                     symmetrical=False,
+                                     through_fields=('student', 'guardian'),
+                                     related_name='students')
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} ({self.role.title if self.role else 'No Role'})"
@@ -34,8 +48,24 @@ class Person(models.Model):
     class Meta:
         verbose_name_plural = "People"
 
+class GuardianStudent(models.Model):
+    guardian = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='guardian_relationships')
+    student = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='student_relationships')
+    relationship = models.CharField(max_length=50, help_text="e.g., Parent, Legal Guardian, Grandparent")
+    date_added = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True, help_text="Whether this relationship is currently active")
+    notes = models.TextField(blank=True, help_text="Any additional notes about this relationship")
 
-class Group(models.Model):
+    class Meta:
+        verbose_name = "Guardian-Student Relationship"
+        verbose_name_plural = "Guardian-Student Relationships"
+        unique_together = ('guardian', 'student')
+        ordering = ['-date_added']
+
+    def __str__(self):
+        return f"{self.guardian} is {self.relationship} of {self.student}"
+
+class Group(BaseVisibilityModel):
     name = models.CharField(max_length=100)
     members = models.ManyToManyField('Person', through='Participation')
     description = models.TextField(blank=True)
@@ -82,23 +112,85 @@ class Theme(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)  # Connects each theme to a group
     color_palette = models.JSONField()  # Stores color values
     font_choices = models.CharField(max_length=100)  # Specify the font choice
-    logo = models.ImageField(upload_to='logos/', null=True, blank=True)
-    background_image = models.ImageField(upload_to='backgrounds/', null=True, blank=True)
+    logo = models.ImageField(upload_to='media/logos/', null=True, blank=True)
+    background_image = models.ImageField(upload_to='media/backgrounds/', null=True, blank=True)
 
     def __str__(self):
         return f"Theme for {self.group.name}"
 
 
-class ParticipationInline(admin.TabularInline):
-    model = Participation
-    extra = 1  # Allows adding new participations directly from the Person admin page
+class Pathways(models.Model):
+    title = models.CharField(max_length=100, unique=True)  # Unique title for the pathway
+    description = models.TextField(blank=True)  # Optional description
+    core_competencies = models.ManyToManyField(CoreCompetency)  # Connects to core competencies
+    groups = models.ManyToManyField(Group)  # Connects to groups
+    is_active = models.BooleanField(default=True)  # Whether the pathway is active
 
+    class Meta:
+        verbose_name_plural = "Pathways"
 
-class PersonAdmin(admin.ModelAdmin):
-    list_display = ('user', 'role', 'is_active', 'get_participations')
-    list_filter = ('role', 'user__is_active')
-    search_fields = ('user__username', 'user__first_name', 'user__last_name')
-    inlines = [ParticipationInline]
+    def __str__(self):
+        return self.title
 
+    def long_title(self):
+        return f"{self.title} (is made of {', '.join(map(str, self.core_competencies.all()))})"
 
+class Badges(models.Model):
+    title = models.CharField(max_length=100, unique=True)  # Unique title for the badge
+    description = models.TextField(blank=True)  # Optional description
+    image = models.ImageField(upload_to='media/badges/', null=True, blank=True)
+    core_competencies = models.ManyToManyField(CoreCompetency)  # Connects to core competencies
+    is_active = models.BooleanField(default=True)  # Whether the badge is active
 
+    class Meta:
+        verbose_name_plural = "Badges"
+
+    def __str__(self):
+        return self.title
+
+    def image_tag(self):
+        if self.image:
+            return format_html('<img src="{}" width="50" height="50" />', self.image.url)
+        return "No Image"
+
+class ModelVisibilitySettings(models.Model):
+    MODEL_CHOICES = [
+        ('person', 'People'),
+        ('group', 'Activity Groups'),
+        ('participation', 'Participations'),
+        ('role', 'Roles'),
+        ('pathways', 'Pathways'),
+        ('badges', 'Badges'),
+    ]
+
+    ACCESS_LEVELS = [
+        ('public', 'Public - Anyone can view'),
+        ('authenticated', 'Authenticated - Any logged in user'),
+        ('staff', 'Staff Only'),
+        ('disabled', 'Disabled - No access (404)'),
+    ]
+
+    model_name = models.CharField(
+        max_length=50, 
+        choices=MODEL_CHOICES,
+        unique=True,
+        help_text="Select which model's visibility to control"
+    )
+    access_level = models.CharField(
+        max_length=20,
+        choices=ACCESS_LEVELS,
+        default='staff',
+        help_text="Who can access this model's views"
+    )
+    last_modified = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name = "Model Visibility Setting"
+        verbose_name_plural = "Model Visibility Settings"
+        ordering = ['model_name']
+
+    def __str__(self):
+        return f"{self.get_model_name_display()} - {self.get_access_level_display()}"
+
+    

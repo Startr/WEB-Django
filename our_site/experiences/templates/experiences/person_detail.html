@@ -1,0 +1,67 @@
+{% extends "experiences/person_base.html" %}
+
+{% block title %}
+    {{ person }}
+{% endblock %}
+
+{% block content %}
+    <h2><a href={% url "experiences:person_list" %}>People</a></h2>
+    {% if user.is_authenticated %}
+        <h3>
+            {{ person }}
+            {% if can_edit %}
+            | <a href={% url "experiences:person_update" person.pk %}>Update</a>
+            {% endif %}
+        </h3>   
+        <hr>        
+        <ul style="--lis: none;">
+            <li>Photo: {{ person.profile_picture }}</li>
+            <li>Graduating: <person_graduating_year>{{ person.graduating_year }}</person_graduating_year></li>
+            <li>Role: {{ person.role }}</li>
+
+            {% if person.guardians.exists %}
+            <li style="--mt:1em">
+                <h4>Guardians:</h4>
+                <ul style="--lis:none; --ml:2em">
+                {% for relationship in person.student_relationships.all %}
+                    {% if relationship.is_active %}
+                    <li>
+                        <a href={% url "experiences:person_detail" relationship.guardian.pk %}>
+                            {{ relationship.guardian }}
+                        </a>
+                        ({{ relationship.relationship }})
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                </ul>
+            </li>
+            {% endif %}
+
+            {% if person.students.exists %}
+            <li style="--mt:1em">
+                <h4>Students:</h4>
+                <ul style="--lis:none; --ml:2em">
+                {% for relationship in person.guardian_relationships.all %}
+                    {% if relationship.is_active %}
+                    <li>
+                        <a href={% url "experiences:person_detail" relationship.student.pk %}>
+                            {{ relationship.student }}
+                        </a>
+                        ({{ relationship.relationship }})
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                </ul>
+            </li>
+            {% endif %}
+        </ul>
+
+        {% if user.is_staff or user.is_superuser %}
+        <form style="display:inline;" action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
+            <input type="submit" value="Delete" />
+        </form>
+        {% endif %}
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">login</a> to view this profile.</p>
+    {% endif %}
+{% endblock %}

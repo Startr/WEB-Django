@@ -1,0 +1,101 @@
+{% extends "accounts/base.html" %}
+{% load account_filters %}
+
+{% block inner_title %}Dashboard{% endblock %}
+
+{% block header %}Account Dashboard{% endblock %}
+
+{% block inner_content %}
+    {% if profile_exists == False %}
+        <div class="card">
+            <h2>Welcome to your account!</h2>
+            <p>It looks like you don't have a profile set up yet. Create one to access all features.</p>
+            <a href="{% url 'accounts:create_profile' %}">Create Profile</a>
+        </div>
+    {% else %}
+        <div class="card">
+            <div style="display: flex; align-items: center;">
+                {% if person.profile_picture %}
+                    <img src="{{ person.profile_picture.url }}" alt="{{ person }}" class="profile-img">
+                {% else %}
+                    <div class="profile-img" style="background-color: #ccc; display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 36px; color: #fff;">{{ person.user.first_name|first }}{{ person.user.last_name|first }}</span>
+                    </div>
+                {% endif %}
+                <div>
+                    <h2>Welcome, {{ person.user.get_full_name }}</h2>
+                    <p>Role: {{ person.role|default:"No role assigned" }}</p>
+                    {% if person.graduating_year %}
+                        <p>Graduating Year: {{ person.graduating_year }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if students %}
+            <div class="card">
+                <h3>Your Students</h3>
+                {% for student in students %}
+                    <div class="student-card">
+                        {% if student.profile_picture %}
+                            <img src="{{ student.profile_picture.url }}" alt="{{ student }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center;">
+                                <span style="font-size: 18px; color: #fff;">{{ student.user.first_name|first }}{{ student.user.last_name|first }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="student-info">
+                            <strong>{{ student.user.get_full_name }}</strong>
+                            <div>Relationship: {{ student_relationships|get_item:student.id|default:"Guardian" }}</div>
+                            <div>
+                                <a href="{% url 'experiences:person_detail' student.id %}">View Profile</a>
+                                <a href="{% url 'experiences:participation_list' %}?person={{ student.id }}">View Participations</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if guardians %}
+            <div class="card">
+                <h3>Your Guardians</h3>
+                {% for guardian in guardians %}
+                    <div class="student-card">
+                        {% if guardian.profile_picture %}
+                            <img src="{{ guardian.profile_picture.url }}" alt="{{ guardian }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center;">
+                                <span style="font-size: 18px; color: #fff;">{{ guardian.user.first_name|first }}{{ guardian.user.last_name|first }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="student-info">
+                            <strong>{{ guardian.user.get_full_name }}</strong>
+                            <div>Relationship: {{ guardian_relationships|get_item:guardian.id|default:"Student" }}</div>
+                            <div>
+                                <a href="{% url 'experiences:person_detail' guardian.id %}">View Profile</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <h3>Your Activities</h3>
+            {% if participations %}
+                <ul>
+                    {% for participation in participations %}
+                        <li>
+                            <a href="{% url 'experiences:participation_detail' participation.id %}">
+                                {{ participation.group.name }} ({{ participation.years|join:", " }})
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>You have no activity participations yet.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %} 

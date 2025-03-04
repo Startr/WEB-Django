@@ -15,6 +15,11 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+MEDIA_URL = '/media/'
+# Updated to use a proper media folder structure
+MEDIA_ROOT = BASE_DIR / 'media'
+# At the moment, the media root is the base directory which is not ideal
+# MEDIA_ROOT = BASE_DIR 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -35,7 +40,9 @@ CSRF_TRUSTED_ORIGINS = ["https://startr-django.production.openco.ca"]
 # Application definition
 
 INSTALLED_APPS = [
+    'django_startr',
     'experiences',
+    'accounts',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'experiences.middleware.ModelVisibilityMiddleware',
 ]
 
 ROOT_URLCONF = 'our_site.urls'
