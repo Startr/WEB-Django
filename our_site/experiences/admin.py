@@ -2,6 +2,17 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import *
 from django.core.cache import cache
+from django import forms
+from django.shortcuts import render
+from django.urls import path
+from django.contrib import messages
+import csv
+import random
+import string
+from io import TextIOWrapper, StringIO
+from django.http import HttpResponseRedirect, HttpResponse
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 
 class ParticipationInline(admin.TabularInline):
@@ -39,6 +50,29 @@ class VisibilityModelAdmin(admin.ModelAdmin):
         updated = queryset.update(is_public=False)
         self.message_user(request, f'{updated} items are now private.')
     make_private.short_description = "Make selected items private"
+
+
+class CsvImportForm(forms.Form):
+    csv_file = forms.FileField(
+        label='Select a CSV file',
+        help_text='The file should have guardian_email, student_email, relationship columns'
+    )
+    create_users = forms.BooleanField(
+        label='Create new users if not found',
+        required=False,
+        initial=True,
+        help_text='If checked, will create new users with random passwords for emails not found in the system'
+    )
+
+
+def generate_password(length=10):
+    """Generate a random pronounceable password"""
+    vowels = 'aeiou'
+    consonants = 'bcdfghjklmnpqrstvwxyz'
+    first_part = ''.join(random.choice(consonants) + random.choice(vowels) for _ in range(length//2))
+    number_part = ''.join(random.choice(string.digits) for _ in range(2))
+    special_char = random.choice('!@#$%^&*')
+    return first_part.capitalize() + number_part + special_char
 
 
 @admin.register(Role)
@@ -94,6 +128,230 @@ class GuardianStudentAdmin(admin.ModelAdmin):
 
 @admin.register(Person)
 class PersonAdmin(VisibilityModelAdmin):
+    change_list_template = "admin/person_changelist.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path('import-csv/', self.import_csv, name='import-guardians-csv'),
+            path('download-results/', self.download_results, name='download-import-results'),
+        ]
+        return my_urls + urls
+
+    def download_results(self, request):
+        """Download the import results as a CSV file"""
+        if not request.session.get('import_results'):
+            self.message_user(request, "No import results to download", level=messages.ERROR)
+            return HttpResponseRedirect("../")
+            
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="new_users.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Email', 'Full Name', 'Username', 'Password', 'Role'])
+        
+        for result in request.session.get('import_results', []):
+            writer.writerow([
+                result.get('email', ''),
+                result.get('full_name', ''),
+                result.get('username', ''),
+                result.get('password', ''),
+                result.get('role', '')
+            ])
+            
+        return response
+
+    def import_csv(self, request):
+        if request.method == "POST":
+            try:
+                csv_file = TextIOWrapper(request.FILES["csv_file"].file, encoding='utf-8')
+                reader = csv.DictReader(csv_file)
+                create_users = 'create_users' in request.POST
+                
+                # Validate CSV headers
+                required_fields = ['guardian_email', 'student_email', 'relationship']
+                missing_fields = [field for field in required_fields if field not in reader.fieldnames]
+                if missing_fields:
+                    raise ValidationError(f'Missing required fields in CSV: {", ".join(missing_fields)}')
+
+                # Process each row
+                success_count = 0
+                error_messages = []
+                new_users = []
+                default_role = None
+                
+                try:
+                    # Try to get a default student role
+                    default_role = Role.objects.get(title__icontains='student')
+                except:
+                    try:
+                        # If no student role, get any role
+                        default_role = Role.objects.first()
+                    except:
+                        pass
+                
+                for row in reader:
+                    try:
+                        # Process guardian
+                        guardian = None
+                        try:
+                            guardian_user = User.objects.get(email=row['guardian_email'])
+                            guardian = Person.objects.get(user=guardian_user)
+                        except User.DoesNotExist:
+                            if create_users:
+                                # Create new user for guardian
+                                password = generate_password()
+                                guardian_email = row['guardian_email']
+                                username = guardian_email.split('@')[0]
+                                
+                                # Ensure unique username
+                                base_username = username
+                                count = 1
+                                while User.objects.filter(username=username).exists():
+                                    username = f"{base_username}{count}"
+                                    count += 1
+                                
+                                # Create user
+                                guardian_user = User.objects.create_user(
+                                    username=username,
+                                    email=guardian_email,
+                                    password=password
+                                )
+                                guardian_user.first_name = row.get('guardian_first_name', '')
+                                guardian_user.last_name = row.get('guardian_last_name', '')
+                                guardian_user.save()
+                                
+                                # Create person
+                                guardian = Person.objects.create(
+                                    user=guardian_user,
+                                    role=default_role
+                                )
+                                
+                                # Add to new users list
+                                new_users.append({
+                                    'email': guardian_email,
+                                    'username': username,
+                                    'password': password,
+                                    'full_name': guardian_user.get_full_name(),
+                                    'role': 'Guardian'
+                                })
+                            else:
+                                raise ValueError(f"Guardian with email {row['guardian_email']} not found")
+                        except Person.DoesNotExist:
+                            if create_users:
+                                # Create person for existing user
+                                guardian = Person.objects.create(
+                                    user=guardian_user,
+                                    role=default_role
+                                )
+                            else:
+                                raise ValueError(f"Person object for user {guardian_user.username} not found")
+                        
+                        # Process student
+                        student = None
+                        try:
+                            student_user = User.objects.get(email=row['student_email'])
+                            student = Person.objects.get(user=student_user)
+                        except User.DoesNotExist:
+                            if create_users:
+                                # Create new user for student
+                                password = generate_password()
+                                student_email = row['student_email']
+                                username = student_email.split('@')[0]
+                                
+                                # Ensure unique username
+                                base_username = username
+                                count = 1
+                                while User.objects.filter(username=username).exists():
+                                    username = f"{base_username}{count}"
+                                    count += 1
+                                
+                                # Create user
+                                student_user = User.objects.create_user(
+                                    username=username,
+                                    email=student_email,
+                                    password=password
+                                )
+                                student_user.first_name = row.get('student_first_name', '')
+                                student_user.last_name = row.get('student_last_name', '')
+                                student_user.save()
+                                
+                                # Create person
+                                student = Person.objects.create(
+                                    user=student_user,
+                                    role=default_role,
+                                    graduating_year=row.get('graduating_year', None)
+                                )
+                                
+                                # Add to new users list
+                                new_users.append({
+                                    'email': student_email,
+                                    'username': username,
+                                    'password': password,
+                                    'full_name': student_user.get_full_name(),
+                                    'role': 'Student'
+                                })
+                            else:
+                                raise ValueError(f"Student with email {row['student_email']} not found")
+                        except Person.DoesNotExist:
+                            if create_users:
+                                # Create person for existing user
+                                student = Person.objects.create(
+                                    user=student_user,
+                                    role=default_role,
+                                    graduating_year=row.get('graduating_year', None)
+                                )
+                            else:
+                                raise ValueError(f"Person object for user {student_user.username} not found")
+
+                        # Create or update relationship
+                        relationship, created = GuardianStudent.objects.get_or_create(
+                            guardian=guardian,
+                            student=student,
+                            defaults={
+                                'relationship': row['relationship'],
+                                'notes': row.get('notes', ''),
+                                'is_active': True
+                            }
+                        )
+
+                        if not created and not relationship.is_active:
+                            relationship.is_active = True
+                            relationship.relationship = row['relationship']
+                            if 'notes' in row:
+                                relationship.notes = row['notes']
+                            relationship.save()
+
+                        success_count += 1
+
+                    except Exception as e:
+                        error_messages.append(f'Row {reader.line_num}: Error - {str(e)}')
+
+                # Show results
+                if success_count:
+                    self.message_user(request, f'Successfully processed {success_count} relationships')
+                
+                for error in error_messages:
+                    self.message_user(request, error, level=messages.WARNING)
+                
+                # Store import results in session for download
+                request.session['import_results'] = new_users
+                
+                # If we have new users, show the results page
+                if new_users:
+                    context = {'new_users': new_users}
+                    return render(request, "admin/import_results.html", context)
+                
+                return HttpResponseRedirect("../")
+                
+            except Exception as e:
+                self.message_user(request, f'Error processing CSV file: {str(e)}', level=messages.ERROR)
+                return HttpResponseRedirect("../")
+
+        form = CsvImportForm()
+        payload = {"form": form}
+        return render(request, "admin/csv_form.html", payload)
+
     @admin.display(description='Full Name')
     def get_full_name(self, obj):
         return obj.user.get_full_name() or obj.user.username
