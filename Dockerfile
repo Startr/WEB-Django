@@ -22,7 +22,7 @@ RUN pipenv install --deploy --ignore-pipfile
 # Verify that requests is installed
 RUN python -c "import requests; print(requests.__version__)"
 
-RUN git submodule update --init --recursive
+# RUN git submodule update --init --recursive
 
 # Final stage: create the runner image
 FROM python:3.11-slim AS runner
