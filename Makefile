@@ -10,7 +10,11 @@ help:
 	@echo ""
 	@echo "Available make commands:"
 	@echo ""
-	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'
+	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | \
+		awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ { \
+		if ($$1 !~ "^[#.]") {print $$1}}' | \
+		sort | \
+		grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'
 	@echo ""
 
 # Docker container name
@@ -25,11 +29,15 @@ django:
 		echo "Usage: make django cmd='command'"; \
 		echo "Example: make django cmd='migrate'"; \
 	else \
-		docker exec -it $(CONTAINER) bash -c "cd /project/our_site && python manage.py $(cmd)"; \
+		docker exec -it $(CONTAINER) bash -c "\
+			cd /project/our_site && \
+			python manage.py $(cmd)"; \
 	fi
 
 setup_groups:
-	docker exec -it $(CONTAINER) bash -c "cd /project/our_site && python manage.py setup_groups"
+	docker exec -it $(CONTAINER) bash -c "\
+		cd /project/our_site && \
+		python manage.py setup_groups"
 
 it_run:
 	@bash -c 'bash <(curl -sL startr.sh) run'
@@ -45,6 +53,9 @@ it_startr:
 	# done'
 	git restore ./our_site/experiences/ && git clean -fd ./our_site/experiences/; \
 	docker exec -it web-django-develop bash -c "cd /project/our_site && ./manage.py startr experiences && ./manage.py runserver 0.0.0.0:8000";
+
+update_submodules:
+	@echo "Developer instructions: Please update your Dockerfile manually to add the appropriate 'RUN' command for installing git (using apt-get or apk) and to include the submodule update command. Then run 'git submodule update --init --recursive'."
 
 minor_release:
 	# Start a minor release with incremented minor version
