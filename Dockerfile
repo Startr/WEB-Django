@@ -22,6 +22,8 @@ RUN pipenv install --deploy --ignore-pipfile
 # Verify that requests is installed
 RUN python -c "import requests; print(requests.__version__)"
 
+RUN git submodule update --init --recursive
+
 # Final stage: create the runner image
 FROM python:3.11-slim AS runner
 
@@ -52,4 +54,4 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # link the cannon project's .venv to the /project/.venv and run bash 
 CMD ["bash", "-c", "ln -s /cannon_project/.venv /project/.venv && bash"]
-RUN git submodule update --init --recursive
+

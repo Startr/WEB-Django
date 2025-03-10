@@ -57,6 +57,29 @@ it_startr:
 update_submodules:
 	@echo "Developer instructions: Please update your Dockerfile manually to add the appropriate 'RUN' command for installing git (using apt-get or apk) and to include the submodule update command. Then run 'git submodule update --init --recursive'."
 
+# Check if .gitmodules exists (returns 1 if present, empty otherwise)
+HAS_SUBMODULE := $(shell [ -f .gitmodules ] && echo 1)
+
+# Check if .gitmodules exists (returns 1 if present, empty otherwise)
+HAS_SUBMODULE := $(shell [ -f .gitmodules ] && echo 1)
+
+deploy:
+	@if [ "$(HAS_SUBMODULE)" = "1" ]; then \
+		if ! grep -q "git submodule update --init --recursive" Dockerfile; then \
+			echo "Adding submodule update command to Dockerfile"; \
+			echo "RUN git submodule update --init --recursive" >> Dockerfile; \
+		fi; \
+		echo "Creating tar archive including .git directory..."; \
+		git archive HEAD > deploy.tar; \
+		tar -rf deploy.tar .git; \
+		echo "Deploying to CapRover using the tar file..."; \
+		npx caprover deploy -t ./deploy.tar; \
+		rm ./deploy.tar; \
+	else \
+		echo "No submodules detected. Deploying normally..."; \
+		npx caprover deploy; \
+	fi
+
 minor_release:
 	# Start a minor release with incremented minor version
 	git flow release start $$(git tag --sort=-v:refname | sed 's/^v//' | head -n 1 | awk -F'.' '{print $$1"."$$2+1".0"}')
