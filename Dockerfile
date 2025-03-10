@@ -52,6 +52,6 @@ RUN ln -s /project/our_submodules/STARTR-django-code /project/django_startr
 ENV VIRTUAL_ENV=/project/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# link the cannon project's .venv to the /project/.venv and run bash 
-CMD ["bash", "-c", "ln -s /cannon_project/.venv /project/.venv && bash"]
+# link the cannon project's .venv to the /project/.venv and run our_site's manage.py runserver 0.0.0.0:8080
+CMD ["bash", "-c", "ln -s /cannon_project/.venv /project/.venv && python /project/our_site/manage.py runserver 0.0.0.0:8080"]
 
