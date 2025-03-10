@@ -60,9 +60,6 @@ update_submodules:
 # Check if .gitmodules exists (returns 1 if present, empty otherwise)
 HAS_SUBMODULE := $(shell [ -f .gitmodules ] && echo 1)
 
-# Check if .gitmodules exists (returns 1 if present, empty otherwise)
-HAS_SUBMODULE := $(shell [ -f .gitmodules ] && echo 1)
-
 deploy:
 	@if [ "$(HAS_SUBMODULE)" = "1" ]; then \
 		echo "Submodules detected."; \
