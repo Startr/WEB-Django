@@ -65,13 +65,11 @@ HAS_SUBMODULE := $(shell [ -f .gitmodules ] && echo 1)
 
 deploy:
 	@if [ "$(HAS_SUBMODULE)" = "1" ]; then \
-		if ! grep -q "git submodule update --init --recursive" Dockerfile; then \
-			echo "Adding submodule update command to Dockerfile"; \
-			echo "RUN git submodule update --init --recursive" >> Dockerfile; \
-		fi; \
-		echo "Creating tar archive including .git directory..."; \
-		git archive HEAD > deploy.tar; \
-		tar -rf deploy.tar .git; \
+		echo "Submodules detected."; \
+		echo "Instead of using the default 'caprover deploy' command,";\
+		echo "we will create a tar of the project and deploy it"; \
+		echo "Creating tar of project..."; \
+		git ls-files --recurse-submodules | tar -czf deploy.tar -T -; \
 		echo "Deploying to CapRover using the tar file..."; \
 		npx caprover deploy -t ./deploy.tar; \
 		rm ./deploy.tar; \
