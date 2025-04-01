@@ -18,11 +18,23 @@ from django.contrib import admin
 from django.conf import settings
 from django.urls import path, re_path, include
 from django.conf.urls.static import static
-
-
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.decorators import login_required
 from django_startr.views import debug_index, debug_permission_denied
 
+# Custom view for the root URL
+from django.shortcuts import render
+
+def home_view(request):
+    if request.user.is_authenticated:
+        return render(request, 'home.html')
+    else:
+        # Use the login template with a welcome message
+        return LoginView.as_view(template_name='registration/login.html', 
+                                extra_context={'welcome_message': 'Welcome to Startr! Please log in to continue.'})(request)
+
 urlpatterns = [
+    path('', home_view, name='home'),
     path("experiences/", include("experiences.urls")),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('auth/', include('django.contrib.auth.urls')),
@@ -34,7 +46,12 @@ handler403 = 'django_startr.views.debug_permission_denied'
 
 if settings.DEBUG:
     urlpatterns += [
-        re_path(r'^.*$', debug_index),
+        # Only allow the home page and authentication URLs to be accessed without login
+        re_path(r'^$', home_view),
+        re_path(r'^auth/.*$', include('django.contrib.auth.urls')),
+        re_path(r'^admin/.*$', admin.site.urls),
+        # All other paths require login
+        re_path(r'^.*$', login_required(debug_index)),
     ]
 
 admin.site.site_header = "Startr Admin"

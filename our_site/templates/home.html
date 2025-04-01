@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to Startr{% endblock %}
+
+{% block content %}
+<h1>Welcome to Startr</h1>
+
+<div class="card">
+    <h2>Welcome, {{ user.username }}!</h2>
+    <p>You're now logged in. You can access the following sections:</p>
+    
+    <ul>
+        <li><a href="{% url 'accounts:dashboard' %}">Your Dashboard</a></li>
+        <li><a href="{% url 'accounts:profile' %}">Your Profile</a></li>
+        <li><a href="{% url 'admin:index' %}">Admin Panel</a> (if you have admin access)</li>
+    </ul>
+</div>
+{% endblock %}
