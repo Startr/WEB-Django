@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Welcome to Startr{% endblock %}
+
+{% block content %}
+<h1>Welcome to Startr</h1>
+
+<!-- Menu moved to the top -->
+<div class="menu">
+    <ul
+        style="--lis:none; --d:flex; --jc: space-around; gap: 1em; --p: 0.5em 1em; --bg: #005894; --br: 0.3em; --border: 1px solid #ccc;">
+        <li><a href="{% url 'accounts:dashboard' %}" style=" --c:white">Your Dashboard</a></li>
+        <li><a href="{% url 'accounts:profile' %}" style=" --c:white">Your Profile</a></li>
+        {% if user.is_staff %}
+        <li><a href="{% url 'admin:index' %}" style="--c:white">Admin Panel</a></li>
+        {% endif %}
+    </ul>
+</div>
+
+<div class="card">
+    <h2>Welcome, {{ user.username }}!</h2>
+    <p>You're now logged in. Explore the sections below:</p>
+
+    <!-- Section with images and descriptions -->
+    <article style="--d:flex; gap:2em; --p: 1em 2em;">
+        <section style="--d:flex; --fd:column; --jc: space-around; --minw:4em;">
+            <img src="{% static 'images/basketball.webp' %}" alt="Basketball" class="section-image">
+            <img src="{% static 'images/music.webp' %}" alt="Music" class="section-image">
+            <img src="{% static 'images/world.webp' %}" alt="Travel" class="section-image">
+            <img src="{% static 'images/robot.webp' %}" alt="Robotics" class="section-image">
+        </section>
+        <section style="--d:flex; --fd:column; --jc: space-around;">
+            {% if user.is_superuser %}
+                <p>Welcome. As an administrator, you have the ability to add teams, clubs, and activities so that students can be
+                    recognized for their co-curricular achievements during the course of the year. You also have the ability
+                    to change all aspects of the app.</p>
+            {% elif user.is_staff %}
+                <p>Welcome. As a staff member, you can manage student activities, review submissions, and help maintain
+                    the system. You have access to most administrative functions needed for day-to-day operations.</p>
+            {% else %}
+                <p>Welcome. As a student, you can view your profile and the activities you are involved in. You can also add
+                    activities, update your roster, and highlight someone for special recognition.</p>
+            {% endif %}
+
+            <p>As a student, you can view your profile and the activities you are involved in. You can also add
+                activities, update your roster, and highlight someone for special recognition.</p>
+            <p>
+                Experiences: View all the experiences offered at The Study and which core competencies they are attached
+                to.
+            </p>
+            <p>Activities: View all the activities offered at The Study and which core competencies they are attached
+                to.
+
+    </article>
+</div>
+
+
+{% endblock %}
