@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from experiences.models import Person, GuardianStudent
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .forms import ProfilePictureForm
+from .forms import ProfilePictureForm, UserRegistrationForm
 
 class AccountDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'accounts/dashboard.html'
@@ -49,6 +49,22 @@ class AccountDashboardView(LoginRequiredMixin, TemplateView):
             context['profile_exists'] = False
             
         return context
+
+def register_view(request):
+    """View for registering a new user"""
+    if request.user.is_authenticated:
+        return redirect('accounts:dashboard')
+        
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, "Your account has been created successfully! You can now log in.")
+            return redirect('login')
+    else:
+        form = UserRegistrationForm()
+        
+    return render(request, 'registration/register.html', {'form': form})
 
 @login_required
 def profile_view(request):

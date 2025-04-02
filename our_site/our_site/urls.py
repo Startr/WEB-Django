@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django_startr.views import debug_index, debug_permission_denied
+from accounts.views import register_view
 
 # Custom view for the root URL
 from django.shortcuts import render
@@ -39,6 +40,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('auth/', include('django.contrib.auth.urls')),
     path("admin/", admin.site.urls),
+    path('register/', register_view, name='register'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'django_startr.views.debug_index'
@@ -49,6 +51,7 @@ if settings.DEBUG:
         # Only allow the home page and authentication URLs to be accessed without login
         re_path(r'^$', home_view),
         re_path(r'^auth/.*$', include('django.contrib.auth.urls')),
+        re_path(r'^register/$', register_view),  # Allow access to registration
         re_path(r'^admin/.*$', admin.site.urls),
         # All other paths require login
         re_path(r'^.*$', login_required(debug_index)),
