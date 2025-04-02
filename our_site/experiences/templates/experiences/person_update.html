@@ -13,16 +13,11 @@
     {{ form.as_p }}
     <input type="submit" value="Update" />
 </form>
-<a href={%
-        url "experiences:person_detail" 
-        person.pk 
-    %}
-    > Cancel </a>
-<form style="display:inline;" 
-    action={% 
-        url "experiences:person_delete" 
-        person.pk 
-    %} 
+<a href={% url "experiences:person_detail" person.pk %}>Cancel</a>
+<form style="
+    display: inline;
+" 
+    action={% url "experiences:person_delete" person.pk %} 
     method="post" 
     onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
     <input type="submit" value="Delete" />

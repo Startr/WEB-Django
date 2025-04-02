@@ -27,40 +27,27 @@
             {% endif %}
             
             {% if person.user == user %}
-                <span class="badge badge-primary">Your profile</span>
-            {% elif person.id in students_ids %}
-                <span class="badge badge-secondary">Your student</span>
+                | <a href={% url "experiences:person_update" person.pk %}>Update</a>
+                <form style="
+                    display: inline;
+                " action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
+                    <input type="submit" value="Delete" />
+                </form>            
+            {% elif user.is_staff or user.is_superuser %}
+                | <a href={% url "experiences:person_update" person.pk %}>Update</a>
+                <form style="
+                    display: inline;
+                " action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
+                    <input type="submit" value="Delete" />
+                </form>   
             {% endif %}
         </li>
     {% empty %}
-        <li>No people found.</li>
+        <li>No People yet.</li>
     {% endfor %}
     </ul>
-    
-    <style>
-        .badge {
-            display: inline-block;
-            padding: 0.25em 0.4em;
-            font-size: 75%;
-            font-weight: 700;
-            line-height: 1;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: baseline;
-            border-radius: 0.25rem;
-            margin-left: 0.5rem;
-        }
-        .badge-primary {
-            color: #fff;
-            background-color: #007bff;
-        }
-        .badge-secondary {
-            color: #fff;
-            background-color: #6c757d;
-        }
-    </style>
     {% else %}
-        <p>Please <a href="{% url 'login' %}">login</a> to see profiles.</p>
+        <p>Please <a href="{% url 'login' %}">login</a> to see people.</p>
     {% endif %}
 {% endblock %}
 
