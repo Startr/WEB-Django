@@ -19,20 +19,19 @@
 {% endblock %}
 
 {% block auth-links %}
-
 <!-- Authentication links can be customized here -->
 <div class="menu">
     <ul
         style="--lis:none; --d:flex; --jc: space-around; gap: 1em; --p: 0.5em 1em; --bg: #005894; --br: 0.3em; --c: #ccc;">
-        <li><a href="{% url 'accounts:dashboard' %}" style=" --c:white">Your Dashboard</a></li>
+        <li><a href="{% url 'accounts:dashboard' %}" style=" --c:white">Dashboard</a></li>
         <li>|</li>
         <li><a href="/experiences" style=" --c:white">Experiences</a></li>
         {% if user.is_staff %}
         <li>|</li>
-        <li><a href="{% url 'admin:index' %}" style="--c:white">Admin Panel</a></li>
+        <li><a href="{% url 'admin:index' %}" style="--c:white">Admin</a></li>
         {% endif %}
     </ul>
-    {{ block.super }}
+    {% comment %}{{ block.super }}{% endcomment %}
 </div>
 {% endblock %}
 

@@ -60,7 +60,24 @@ update_submodules:
 # Check if .gitmodules exists (returns 1 if present, empty otherwise)
 HAS_SUBMODULE := $(shell [ -f .gitmodules ] && echo 1)
 
+# for deployment to work we need to be logged in to caprover
+# and have the caprover CLI installed
+# check if caprover is installed
+HAS_CAPROVER := $(shell command -v caprover 2>/dev/null && echo 1)
+# check if we are logged in to caprover
+HAS_CAPROVER_LOGIN := $(shell caprover ls | grep -q "Logged in" && echo 1)
+
+
 deploy:
+	@if [ "$(HAS_CAPROVER)" = "" ]; then \
+		echo "CapRover CLI is not installed. Please install it first."; \
+		echo "You can install it using npm: npm install -g caprover"; \
+		exit 1; \
+	elif [ "$(HAS_CAPROVER_LOGIN)" = "" ]; then \
+		echo "You are not logged in to CapRover."; \
+		echo "Please log in using the command: caprover login"; \
+		exit 1; \
+	fi
 	@if [ "$(HAS_SUBMODULE)" = "1" ]; then \
 		echo "Submodules detected."; \
 		echo "Instead of using the default 'caprover deploy' command,";\
