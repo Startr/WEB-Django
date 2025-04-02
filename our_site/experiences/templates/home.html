@@ -2,10 +2,13 @@
 {% load static %}
 {% block title %}Welcome to Startr{% endblock %}
 
-{% block title-bar %}""
+{% block title-bar %}
 <title-bar style="--d:flex; --jc: space-around">
-    <h1>Welcome to Startr</h1>
-    <p>Startr is a platform for students to manage their extracurricular activities and achievements.</p>
+    <a href="/"><img src="{% static 'images/The_Study.webp' %}" alt="The Study" style="--minw:10em; "></a>
+    <section style="--w:200%; --ta:right;">
+        <h2 style="--c: #005894; --fs: 1.5em; --weight: bold;">Particip8</h2>
+        <p style="--c: #005894; --fs: 0.8em;">Where participation becomes portfolio</p>
+    </section>
 </title-bar>
 {% endblock %}
 
