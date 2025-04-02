@@ -6,61 +6,85 @@
 {% block header %}Your Profile{% endblock %}
 
 {% block inner_content %}
-    {% if messages %}
-    <div style="background-color: #d4edda; color: #155724; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
-        {% for message in messages %}
-            {{ message }}
-        {% endfor %}
-    </div>
-    {% endif %}
+{% if messages %}
+<div style="
+    --bgc: #d4edda; 
+    --c: #155724; 
+    --p: 15px; 
+    --mb: 20px; 
+    --br: 4px;">
+    {% for message in messages %}
+    {{ message }}
+    {% endfor %}
+</div>
+{% endif %}
 
-    <div class="card">
-        <div style="display: flex; align-items: flex-start;">
-            <div style="margin-right: 30px;">
-                {% if person.profile_picture %}
-                    <img src="{{ person.profile_picture.url }}" alt="{{ person }}" style="width: 200px; height: 200px; border-radius: 10px; object-fit: cover;">
-                {% else %}
-                    <div style="width: 200px; height: 200px; border-radius: 10px; background-color: #ccc; display: flex; align-items: center; justify-content: center;">
-                        <span style="font-size: 72px; color: #fff;">{{ person.user.first_name|first }}{{ person.user.last_name|first }}</span>
-                    </div>
-                {% endif %}
-                
-                <form method="post" enctype="multipart/form-data" style="margin-top: 20px;">
-                    {% csrf_token %}
-                    <div style="margin-bottom: 10px;">
-                        {{ form.profile_picture }}
-                        {% if form.profile_picture.errors %}
-                            <div style="color: red; font-size: 14px;">
-                                {{ form.profile_picture.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <button type="submit" style="padding: 5px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Update Profile Picture</button>
-                </form>
+<div class="card">
+    <div style="
+        --d: flex;
+        --fd:column-reverse;
+        --fd-sm:row;">
+        <div style="margin-right: 30px;">
+            {% if person.profile_picture %}
+            <img src="{{ person.profile_picture.url }}" alt="{{ person }}" style="
+                        --w: 200px; 
+                        --h: 200px; 
+                        --br: 10px; 
+                        object-fit: cover;">
+            {% else %}
+            <div style="
+                        --w: 10em; 
+                        --h: 10em; 
+                        --br: 10px; 
+                        --bgc: #ccc; 
+                        --d: flex; 
+                        --ai: center; 
+                        --jc: center;">
+                <span style="font-size: 72px; color: #fff;">
+                    {{ person.user.first_name|first }}{{ person.user.last_name|first }}</span>
             </div>
-            
-            <div style="flex-grow: 1;">
-                <h2>{{ person.user.get_full_name }}</h2>
-                <div style="margin-bottom: 20px;">
-                    <strong>Username:</strong> {{ person.user.username }}<br>
-                    <strong>Email:</strong> {{ person.user.email }}<br>
-                    <strong>Role:</strong> {{ person.role }}<br>
-                    {% if person.graduating_year %}
-                        <strong>Graduating Year:</strong> {{ person.graduating_year }}<br>
-                    {% endif %}
-                    <strong>Account Status:</strong> 
-                    {% if person.user.is_active %}
-                        <span class="badge badge-primary">Active</span>
-                    {% else %}
-                        <span class="badge badge-secondary">Inactive</span>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" style="margin-top: 20px;">
+                {% csrf_token %}
+                <div style="margin-bottom: 10px;">
+                    {{ form.profile_picture }}
+                    {% if form.profile_picture.errors %}
+                    <div style="color: red; font-size: 14px;">
+                        {{ form.profile_picture.errors }}
+                    </div>
                     {% endif %}
                 </div>
-                
+                <button type="submit"
+                    style="--p: 5px 10px; 
+                    background-color: #007bff; 
+                    color: white; 
+                    border: none; --br: 4px; 
+                    cursor: pointer;">Update Profile Picture</button>
+            </form>
+        </div>
+
+        <div style="flex-grow: 1;">
+            <h2>{{ person.user.get_full_name }}</h2>
+            <div style="--m: 2em 0;">
+                <strong>Email:</strong> {{ person.user.email }}<br>
+                <strong>Role:</strong> {{ person.role }}<br>
+                {% if person.graduating_year %}
+                <strong>Graduating Year:</strong> {{ person.graduating_year }}<br>
+                {% endif %}
+                <strong>Account Status:</strong>
+                {% if person.user.is_active %}
+                <span class="badge badge-primary">Active</span>
+                {% else %}
+                <span class="badge badge-secondary">Inactive</span>
+                {% endif %}
             </div>
+
         </div>
     </div>
-    
-    <!-- Student/Guardian relationships will be displayed here in the future -->
-    
-    <!-- Activity participations will be displayed here in the future -->
+</div>
+
+<!-- Student/Guardian relationships will be displayed here in the future -->
+
+<!-- Activity participations will be displayed here in the future -->
 {% endblock %}

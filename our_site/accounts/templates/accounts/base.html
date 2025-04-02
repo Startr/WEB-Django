@@ -60,17 +60,18 @@
 {% endblock %}
 
 {% block auth-links %}
-    {{ block.super }}
-    <div class="nav" style="--d:flex; --jc:center; --mb:1em;">
-        <a href="{% url 'accounts:profile' %}" style="--mr:1em;">Profile</a>
-        <a href="{% url 'password_change' %}" style="--mr:1em;">Change Password</a>
-        <!-- logout-->
-        <a href="{% url 'logout' %}" style="--mr:1em;">Logout</a>
-    </div>
+{{ block.super }}
+<div class="nav" style="--d:flex; --jc:center; --mb:1em;">
+    <a href="{% url 'accounts:profile' %}" style="--mr:1em;">Profile</a>
+    <a href="{% url 'password_change' %}" style="--mr:1em;">Change Password</a>
+    <!-- logout-->
+    <a href="{% url 'logout' %}" style="--mr:1em;">Logout</a>
+</div>
 {% endblock %}
 
 {% block content %}
-<h1>{% block header %}Account Management{% endblock %}</h1>
+<h1 style="--ta:center; --ta-sm:left; --p: 0.2em">
+    {% block header %}Account Management{% endblock %}</h1>
 
 {% block inner_content %}{% endblock %}
 {% endblock %}
