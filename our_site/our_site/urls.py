@@ -32,7 +32,10 @@ def home_view(request):
     else:
         # Use the login template with a welcome message
         return LoginView.as_view(template_name='registration/login.html', 
-                                extra_context={'welcome_message': 'Welcome to Startr! Please log in to continue.'})(request)
+                                extra_context={
+                                    'title': 'Particip8',
+                                    'welcome_message': 'Where participation becomes portfolio'
+                                    })(request)
 
 urlpatterns = [
     path('', home_view, name='home'),
