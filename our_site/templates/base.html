@@ -4,13 +4,13 @@
 {% block title %}{% endblock %}
 
 {% block head_content %}
-    {{ block.super }}
-    <!-- Additional head content can go here -->
+{{ block.super }}
+<!-- Additional head content can go here -->
 {% endblock %}
 
 {% block title-bar %}
-<title-bar style="--d:flex; --jc: space-around;">
-    <a href="/"><img src="{% static 'images/The_Study.webp' %}" alt="The Study" style="--minw:10em; "></a>
+<title-bar style="--d:flex; --jc: space-around; gap:1em">
+    <a href="/" style="--m:auto"><img src="{% static 'images/The_Study.webp' %}" alt="The Study" style="--minw:10em; "></a>
     <section style="--w:200%; --ta:right;">
         <h2 style="--c: #005894; --fs: 1.5em; --weight: bold;">Particip8</h2>
         <p style="--c: #005894; --fs: 0.8em;">Where participation becomes portfolio</p>
@@ -18,12 +18,30 @@
 </title-bar>
 {% endblock %}
 
-{% block content %}
+{% block auth-links %}
+
+<!-- Authentication links can be customized here -->
+<div class="menu">
+    <ul
+        style="--lis:none; --d:flex; --jc: space-around; gap: 1em; --p: 0.5em 1em; --bg: #005894; --br: 0.3em; --c: #ccc;">
+        <li><a href="{% url 'accounts:dashboard' %}" style=" --c:white">Your Dashboard</a></li>
+        <li>|</li>
+        <li><a href="/experiences" style=" --c:white">Experiences</a></li>
+        {% if user.is_staff %}
+        <li>|</li>
+        <li><a href="{% url 'admin:index' %}" style="--c:white">Admin Panel</a></li>
+        {% endif %}
+    </ul>
     {{ block.super }}
-    <!-- Main content overrides can go here -->
+</div>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+<!-- Main content overrides can go here -->
 {% endblock %}
 
 {% block footer %}
-    {{ block.super }}
-    <!-- Footer modifications can go here -->
+{{ block.super }}
+<!-- Footer modifications can go here -->
 {% endblock %}

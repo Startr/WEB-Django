@@ -8,17 +8,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="menu">
-    <ul
-        style="--lis:none; --d:flex; --jc: space-around; gap: 1em; --p: 0.5em 1em; --bg: #005894; --br: 0.3em; --border: 1px solid #ccc;">
-        <li><a href="{% url 'accounts:dashboard' %}" style=" --c:white">Your Dashboard</a></li>
-        <li><a href="/experiences" style=" --c:white">Experiences</a></li>
-        {% if user.is_staff %}
-        <li><a href="{% url 'admin:index' %}" style="--c:white">Admin Panel</a></li>
-        {% endif %}
-    </ul>
-</div>
-
 <div class="card">
     <article style="--d:flex; gap:2em; --p: 1em 2em;">
         <section style="--d:flex; --fd:column; --jc: space-around; --minw:4em; --m:0 1em">
