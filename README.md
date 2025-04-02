@@ -1,8 +1,12 @@
 # Startr/WEB-Django
 
-## v0.5.0
+## v0.6.0
 
 ## Major new features and functionality.
+ 
+ - Improved build system using makefiles
+ - Cleaner more responsive layouts
+ - Enhanced autobuilding
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
 [![Docker Stars](https://img.shields.io/docker/stars/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
