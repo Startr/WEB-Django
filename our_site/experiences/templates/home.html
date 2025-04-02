@@ -3,17 +3,11 @@
 {% block title %}Welcome to Startr{% endblock %}
 
 {% block title-bar %}
-<title-bar style="--d:flex; --jc: space-around">
-    <a href="/"><img src="{% static 'images/The_Study.webp' %}" alt="The Study" style="--minw:10em; "></a>
-    <section style="--w:200%; --ta:right;">
-        <h2 style="--c: #005894; --fs: 1.5em; --weight: bold;">Particip8</h2>
-        <p style="--c: #005894; --fs: 0.8em;">Where participation becomes portfolio</p>
-    </section>
-</title-bar>
+{{ block.super }}
+<!-- You can override or add to the title-bar block here -->
 {% endblock %}
 
 {% block content %}
-<!-- Menu moved to the top -->
 <div class="menu">
     <ul
         style="--lis:none; --d:flex; --jc: space-around; gap: 1em; --p: 0.5em 1em; --bg: #005894; --br: 0.3em; --border: 1px solid #ccc;">
@@ -26,38 +20,38 @@
 </div>
 
 <div class="card">
-    <h2>Welcome, {{ user.username }}!</h2>
-    <p>You're now logged in. Explore the sections below:</p>
-
-    <!-- Section with images and descriptions -->
     <article style="--d:flex; gap:2em; --p: 1em 2em;">
-        <section style="--d:flex; --fd:column; --jc: space-around; --minw:4em;">
-            <img src="{% static 'images/basketball.webp' %}" alt="Basketball" class="section-image">
-            <img src="{% static 'images/music.webp' %}" alt="Music" class="section-image">
-            <img src="{% static 'images/world.webp' %}" alt="Travel" class="section-image">
-            <img src="{% static 'images/robot.webp' %}" alt="Robotics" class="section-image">
+        <section style="--d:flex; --fd:column; --jc: space-around; --minw:4em; --m:0 1em">
+            <img src="{% static 'images/basketball.webp' %}" alt="Basketball">
+            <img src="{% static 'images/music.webp' %}" alt="Music">
+            <img src="{% static 'images/world.webp' %}" alt="World">
+            <img src="{% static 'images/robot.webp' %}" alt="Robotics">
         </section>
         <section style="--d:flex; --fd:column; --jc: space-around;">
             {% if user.is_superuser %}
-            <p>Welcome. As an administrator, you have the ability to add teams, clubs, and activities so that students
+            <p>Welcome {{ user.username }}!. As an administrator, you have the ability to add teams, clubs, and
+                activities so that students
                 can be
                 recognized for their co-curricular achievements during the course of the year. You also have the ability
                 to change all aspects of the app.</p>
             {% elif user.is_staff %}
-            <p>Welcome. As a staff member, you can manage student activities, review submissions, and help maintain
+            <p>Welcome {{ user.username }}. As a staff member, you can manage student activities, review submissions,
+                and help maintain
                 the system. You have access to most administrative functions needed for day-to-day operations.</p>
             {% else %}
-            <p>Welcome. As a student, you can view your profile and the activities you are involved in. You can also add
+            <p>Welcome {{ user.username }}. As a student, you can view your profile and the activities you are involved
+                in. You can also add
                 activities, update your roster, and highlight someone for special recognition.</p>
             {% endif %}
 
-            <p>As a student, you can view your profile and the activities you are involved in. You can also add
-                activities, update your roster, and highlight someone for special recognition.</p>
-            <p>
-                Experiences: View all the experiences offered at The Study and which core competencies they are attached
+            <p><b>Dashboard:</b> Update your profile, change your password, logout and have a quick view at what
+                activities your daughter is involved</p>
+            <p><strong>Experiences:</strong> View all the experiences offered at The Study and which core competencies
+                they are attached
                 to.
             </p>
-            <p>Activities: View all the activities offered at The Study and which core competencies they are attached
+            <p><b>Activities:</b> View all the activities offered at The Study and which core competencies they are
+                attached
                 to.
 
     </article>
