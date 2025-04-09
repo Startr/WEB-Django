@@ -26,14 +26,7 @@
                 (Class of {{ person.graduating_year }})
             {% endif %}
             
-            {% if person.user == user %}
-                | <a href={% url "experiences:person_update" person.pk %}>Update</a>
-                <form style="
-                    display: inline;
-                " action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
-                    <input type="submit" value="Delete" />
-                </form>            
-            {% elif user.is_staff or user.is_superuser %}
+            {% if user.is_staff or user.is_superuser %}
                 | <a href={% url "experiences:person_update" person.pk %}>Update</a>
                 <form style="
                     display: inline;
