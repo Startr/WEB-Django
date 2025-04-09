@@ -1,79 +1,133 @@
 {% extends "experiences/person_base.html" %}
 
 {% block title %}
-    {{ person }}
+    {{ person.user.get_full_name|default:person.user.username }}
 {% endblock %}
 
 {% block content %}
     <h2><a href={% url "experiences:person_list" %}>People</a></h2>
     {% if user.is_authenticated %}
-        <h3>
-            {{ person }}
-            {% if can_edit %}
-            | <a href={% url "experiences:person_update" person.pk %}>Update</a>
-            {% endif %}
-        </h3>   
-        <hr>        
-        <ul style="
-            --lis: none;
-        ">
-            <li>Photo: {{ person.profile_picture }}</li>
-            <li>Graduating: <person_graduating_year>{{ person.graduating_year }}</person_graduating_year></li>
-            <li>Role: {{ person.role }}</li>
-
-            {% if person.guardians.exists %}
-            <li style="
-                --mt: 1em;
-            ">
-                <h4>Guardians:</h4>
-                <ul style="
-                    --lis: none; 
-                    --ml: 2em;
-                ">
-                {% for relationship in person.student_relationships.all %}
-                    {% if relationship.is_active %}
-                    <li>
+        <div class="person-header" style="margin-bottom: 20px;">
+            <div style="display: flex; align-items: center;">
+                {% if person.profile_picture %}
+                    <img src="{{ person.profile_picture.url }}" alt="{{ person }}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 20px;">
+                {% else %}
+                    <div style="width: 120px; height: 120px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 20px;">
+                        <span style="font-size: 48px; color: #fff;">{{ person.user.first_name|first }}{{ person.user.last_name|first }}</span>
+                    </div>
+                {% endif %}
+                <div>
+                    <h3>{{ person.user.get_full_name|default:person.user.username }}</h3>
+                    <p>Role: {{ person.role|default:"No role assigned" }}</p>
+                    {% if person.graduating_year %}
+                        <p>Graduating Year: {{ person.graduating_year }}</p>
+                    {% endif %}
+                    
+                    {% if can_edit %}
+                        <a href={% url "experiences:person_update" person.pk %} class="btn btn-primary btn-sm">Update</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <hr>       
+        
+        {% if person.guardians.exists %}
+        <div class="card" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h4>Guardians:</h4>
+            <ul style="list-style: none; padding-left: 0;">
+            {% for relationship in person.student_relationships.all %}
+                {% if relationship.is_active %}
+                <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                    {% if relationship.guardian.profile_picture %}
+                        <img src="{{ relationship.guardian.profile_picture.url }}" alt="{{ relationship.guardian }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 10px;">
+                    {% else %}
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                            <span style="font-size: 18px; color: #fff;">{{ relationship.guardian.user.first_name|first }}{{ relationship.guardian.user.last_name|first }}</span>
+                        </div>
+                    {% endif %}
+                    <div>
                         <a href={% url "experiences:person_detail" relationship.guardian.pk %}>
-                            {{ relationship.guardian }}
+                            {{ relationship.guardian.user.get_full_name|default:relationship.guardian.user.username }}
                         </a>
-                        ({{ relationship.relationship }})
-                    </li>
-                    {% endif %}
-                {% endfor %}
-                </ul>
-            </li>
-            {% endif %}
+                        <p>Relationship: {{ relationship.relationship }}</p>
+                    </div>
+                </li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
 
-            {% if person.students.exists %}
-            <li style="
-                --mt: 1em;
-            ">
-                <h4>Students:</h4>
-                <ul style="
-                    --lis: none; 
-                    --ml: 2em;
-                ">
-                {% for relationship in person.guardian_relationships.all %}
-                    {% if relationship.is_active %}
-                    <li>
-                        <a href={% url "experiences:person_detail" relationship.student.pk %}>
-                            {{ relationship.student }}
-                        </a>
-                        ({{ relationship.relationship }})
-                    </li>
+        {% if person.students.exists %}
+        <div class="card" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h4>Students:</h4>
+            <ul style="list-style: none; padding-left: 0;">
+            {% for relationship in person.guardian_relationships.all %}
+                {% if relationship.is_active %}
+                <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                    {% if relationship.student.profile_picture %}
+                        <img src="{{ relationship.student.profile_picture.url }}" alt="{{ relationship.student }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 10px;">
+                    {% else %}
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                            <span style="font-size: 18px; color: #fff;">{{ relationship.student.user.first_name|first }}{{ relationship.student.user.last_name|first }}</span>
+                        </div>
                     {% endif %}
-                {% endfor %}
+                    <div>
+                        <a href={% url "experiences:person_detail" relationship.student.pk %}>
+                            {{ relationship.student.user.get_full_name|default:relationship.student.user.username }}
+                        </a>
+                        <p>Relationship: {{ relationship.relationship }}</p>
+                    </div>
+                </li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="card" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <h4>Activities</h4>
+            {% if participations %}
+                <ul style="padding-left: 15px;">
+                    {% for participation in participations %}
+                        <li style="margin-bottom: 10px;">
+                            <a href="{% url 'experiences:participation_detail' participation.id %}">
+                                {{ participation.group.name }} ({{ participation.years|join:", " }})
+                            </a>
+                            {% if participation.hours %}
+                                <p>Hours: {{ participation.hours }}</p>
+                            {% endif %}
+                            
+                            {% if participation.special_recognition %}
+                                <div style="margin-top: 5px; font-style: italic;">
+                                    <strong>Special Recognition:</strong> {{ participation.special_recognition }}
+                                </div>
+                            {% endif %}
+                            
+                            <div style="margin-top: 5px;">
+                                {% if participation.elementary %}
+                                    <span style="background-color: #17a2b8; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; margin-right: 5px;">Elementary</span>
+                                {% endif %}
+                                {% if participation.high %}
+                                    <span style="background-color: #007bff; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px;">High School</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
                 </ul>
-            </li>
+            {% else %}
+                <p>This person has no activity participations yet.</p>
             {% endif %}
-        </ul>
+        </div>
 
         {% if user.is_staff or user.is_superuser %}
-        <form style="
-            display: inline;
-        " action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
-            <input type="submit" value="Delete" />
-        </form>
+        <div style="margin-top: 20px;">
+            <form style="display: inline;" action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">
+                {% csrf_token %}
+                <input type="submit" value="Delete" class="btn btn-danger" />
+            </form>
+        </div>
         {% endif %}
     {% else %}
         <p>Please <a href="{% url 'login' %}">login</a> to view this profile.</p>

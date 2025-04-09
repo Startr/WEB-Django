@@ -23,7 +23,7 @@
                     </div>
                 {% endif %}
                 <div>
-                    <h2>Welcome, {{ person.user.get_full_name }}</h2>
+                    <h2>Welcome, {{ person.user.get_full_name|default:person.user.username }}</h2>
                     <p>Role: {{ person.role|default:"No role assigned" }}</p>
                     {% if person.graduating_year %}
                         <p>Graduating Year: {{ person.graduating_year }}</p>
@@ -40,16 +40,16 @@
                         {% if student.profile_picture %}
                             <img src="{{ student.profile_picture.url }}" alt="{{ student }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
                         {% else %}
-                            <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center;">
+                            <div style="--w: 50px; --h: 46px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center;">
                                 <span style="font-size: 18px; color: #fff;">{{ student.user.first_name|first }}{{ student.user.last_name|first }}</span>
                             </div>
                         {% endif %}
-                        <div class="student-info">
-                            <strong>{{ student.user.get_full_name }}</strong>
+                        <div class="student-info" style="--w: 100%">
+                            <strong>{{ student.user.get_full_name|default:student.user.username }}</strong>
                             <div>Relationship: {{ student_relationships|get_item:student.id|default:"Guardian" }}</div>
-                            <div>
-                                <a href="{% url 'experiences:person_detail' student.id %}">View Profile</a>
-                                <a href="{% url 'experiences:participation_list' %}?person={{ student.id }}">View Participations</a>
+                            <div style="--d:flex;--ac: center;--jc: space-evenly;">
+                                <a style="--d:block" href="{% url 'experiences:person_detail' student.id %}">View Profile</a>
+                                <a style="--d:block"  href="{% url 'experiences:participation_list' %}?person={{ student.id }}">View Participations</a>
                             </div>
                         </div>
                     </div>
@@ -70,7 +70,7 @@
                             </div>
                         {% endif %}
                         <div class="student-info">
-                            <strong>{{ guardian.user.get_full_name }}</strong>
+                            <strong>{{ guardian.user.get_full_name|default:guardian.user.username }}</strong>
                             <div>Relationship: {{ guardian_relationships|get_item:guardian.id|default:"Student" }}</div>
                             <div>
                                 <a href="{% url 'experiences:person_detail' guardian.id %}">View Profile</a>
@@ -94,8 +94,13 @@
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>You have no activity participations yet.</p>
+                <p>You have no activity participations yet!</p>
+                {% if person.role|lower == 'parent' %}
+                    <div class="parent-suggestion" style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #007bff; border-radius: 4px;">
+                        <p><strong>Get Involved!</strong> As a parent, you can participate in our vibrant parent community. Learn more at <a href="https://www.thestudy.qc.ca/about/parent-community" target="_blank">thestudy.qc.ca/about/parent-community</a>.</p>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
     {% endif %}
-{% endblock %} 
+{% endblock %}
