@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+    <div style="padding: 20px;">
+        <h1>Import People from CSV</h1>
+        <p>Upload a CSV file containing people data. Required columns: email, first_name, last_name, role</p>
+        <p>Optional columns: graduating_year</p>
+        <p>If a user with the given email already exists, their person record will be updated.</p>
+        <p>If a user doesn't exist, a new one will be created with a random password.</p>
+        
+        <form action="." method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div style="margin-bottom: 20px;">
+                {{ form.as_p }}
+            </div>
+            <input type="submit" value="Upload CSV" />
+        </form>
+        
+        <h3 style="margin-top: 20px;">Example CSV Format:</h3>
+        <pre>
+email,first_name,last_name,role,graduating_year
+johndoe@example.com,John,Doe,Student,2026
+janedoe@example.com,Jane,Doe,Facilitator,
+        </pre>
+    </div>
+{% endblock %}
