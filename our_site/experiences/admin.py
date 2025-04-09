@@ -516,7 +516,7 @@ class PersonAdmin(VisibilityModelAdmin):
             "form": form,
             "title": "Import People from CSV"
         }
-        return render(request, "admin/csv_form.html", payload)
+        return render(request, "admin/people_csv_form.html", payload)
 
     @admin.display(description='Full Name')
     def get_full_name(self, obj):

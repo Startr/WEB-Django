@@ -1,27 +1,53 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n admin_urls %}
 
 {% block content %}
-    <div style="padding: 20px;">
-        <h1>Import People from CSV</h1>
-        <p>Upload a CSV file containing people data. Required columns: email, first_name, last_name, role</p>
-        <p>Optional columns: graduating_year</p>
-        <p>If a user with the given email already exists, their person record will be updated.</p>
-        <p>If a user doesn't exist, a new one will be created with a random password.</p>
+<div id="content-main">
+    
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            {% for field in form %}
+                <div class="form-row">
+                    {{ field.errors }}
+                    <label for="{{ field.id_for_label }}" class="{% if field.field.required %}required{% endif %}">
+                        {{ field.label }}:
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="help">{{ field.help_text }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </fieldset>
         
-        <form action="." method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div style="margin-bottom: 20px;">
-                {{ form.as_p }}
-            </div>
-            <input type="submit" value="Upload CSV" />
-        </form>
-        
-        <h3 style="margin-top: 20px;">Example CSV Format:</h3>
-        <pre>
-email,first_name,last_name,role,graduating_year
-johndoe@example.com,John,Doe,Student,2026
-janedoe@example.com,Jane,Doe,Facilitator,
-        </pre>
-    </div>
+        <h2>Instructions</h2>
+        <p>Upload a CSV file with the following columns:</p>
+        <ul>
+            <li><strong>email</strong> - Email address of the person (required)</li>
+            <li><strong>role</strong> - The role title for this person (required, must match an existing role)</li>
+            <li><strong>first_name</strong> - First name (optional)</li>
+            <li><strong>last_name</strong> - Last name (optional)</li>
+            <li><strong>graduating_year</strong> - Graduating year for students (optional)</li>
+        </ul>
+
+        <h2>New User Creation</h2>
+        <p>If you check the "Create new users" option:</p>
+        <ul>
+            <li>The system will create new user accounts for any email not found in the database</li>
+            <li>Random pronounceable passwords will be generated for each new account</li>
+            <li>After import, you'll see a list of all new accounts created with their credentials</li>
+            <li>You can download a CSV file with all the account details to distribute to users</li>
+        </ul>
+
+        <h3>Example CSV Format</h3>
+        <pre>email,role,first_name,last_name,graduating_year
+john.doe@example.com,Student,John,Doe,2026
+jane.smith@example.com,Facilitator,Jane,Smith,</pre>
+
+        <div class="submit-row">
+            <input type="submit" class="default" value="{% trans 'Upload CSV' %}">
+        </div>
+    </form>
+</div>
 {% endblock %}
