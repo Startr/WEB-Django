@@ -13,11 +13,30 @@ from io import TextIOWrapper, StringIO
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
+from django.db.models import Case, When, Value, IntegerField
+from .admin_widgets import YearSelectorWidget
 
 
 class ParticipationInline(admin.TabularInline):
     model = Participation
     extra = 1  # Allows adding new participations directly from the Person admin page
+    formfield_overrides = {
+        models.JSONField: {'widget': YearSelectorWidget()},
+    }
+    
+    def get_queryset(self, request):
+        # Get the base queryset
+        queryset = super().get_queryset(request)
+        
+        # Annotate queryset to prioritize Facilitators
+        # This adds a 'sort_order' value: 1 for Facilitators, 2 for others
+        return queryset.annotate(
+            sort_order=Case(
+                When(person__role__title='Facilitator', then=Value(1)),
+                default=Value(2),
+                output_field=IntegerField(),
+            )
+        ).order_by('sort_order', 'person__user__first_name', 'person__user__last_name')
 
 
 class VisibilityModelAdmin(admin.ModelAdmin):
@@ -135,6 +154,7 @@ class PersonAdmin(VisibilityModelAdmin):
         my_urls = [
             path('import-csv/', self.import_csv, name='import-guardians-csv'),
             path('download-results/', self.download_results, name='download-import-results'),
+            path('import-people/', self.import_people_csv, name='import-people-csv'),
         ]
         return my_urls + urls
 
@@ -352,6 +372,152 @@ class PersonAdmin(VisibilityModelAdmin):
         payload = {"form": form}
         return render(request, "admin/csv_form.html", payload)
 
+    def import_people_csv(self, request):
+        """Import people from a CSV file"""
+        if request.method == "POST":
+            try:
+                csv_file = TextIOWrapper(request.FILES["csv_file"].file, encoding='utf-8')
+                reader = csv.DictReader(csv_file)
+                create_users = 'create_users' in request.POST
+                
+                # Validate CSV headers
+                required_fields = ['email', 'role']
+                missing_fields = [field for field in required_fields if field not in reader.fieldnames]
+                if missing_fields:
+                    raise ValidationError(f'Missing required fields in CSV: {", ".join(missing_fields)}')
+                
+                # Validate that all roles exist
+                all_roles = set(Role.objects.values_list('title', flat=True))
+                
+                # Process each row
+                success_count = 0
+                error_messages = []
+                new_users = []
+                
+                for row in reader:
+                    try:
+                        if not row['email'] or not row['role']:
+                            raise ValidationError(f"Row {reader.line_num}: Email and role are required fields")
+                            
+                        # Validate role
+                        role_title = row['role'].strip()
+                        if role_title not in all_roles:
+                            raise ValidationError(f"Row {reader.line_num}: Role '{role_title}' does not exist")
+                            
+                        try:
+                            role = Role.objects.get(title=role_title)
+                        except Role.DoesNotExist:
+                            raise ValidationError(f"Row {reader.line_num}: Role '{role_title}' does not exist")
+                        
+                        # Check if user already exists
+                        email = row['email'].strip().lower()
+                        try:
+                            user = User.objects.get(email=email)
+                            # User exists, check if person exists
+                            try:
+                                person = Person.objects.get(user=user)
+                                # Update person if they exist
+                                person.role = role
+                                if 'graduating_year' in row and row['graduating_year']:
+                                    try:
+                                        person.graduating_year = int(row['graduating_year'])
+                                    except ValueError:
+                                        error_messages.append(f"Row {reader.line_num}: Invalid graduating year '{row['graduating_year']}'")
+                                person.save()
+                                success_count += 1
+                            except Person.DoesNotExist:
+                                # Create new person record for existing user
+                                person = Person.objects.create(
+                                    user=user,
+                                    role=role,
+                                    graduating_year=int(row['graduating_year']) if row.get('graduating_year') else None
+                                )
+                                success_count += 1
+                        except User.DoesNotExist:
+                            if create_users:
+                                # Create a new user and person
+                                password = generate_password()
+                                
+                                # Create username from email or first/last name
+                                if 'first_name' in row and 'last_name' in row and row['first_name'] and row['last_name']:
+                                    base_username = f"{row['first_name'].lower()}.{row['last_name'].lower()}"
+                                else:
+                                    base_username = email.split('@')[0]
+                                
+                                # Ensure username is unique
+                                username = base_username
+                                count = 1
+                                while User.objects.filter(username=username).exists():
+                                    username = f"{base_username}{count}"
+                                    count += 1
+                                
+                                # Create user
+                                user = User.objects.create_user(
+                                    username=username,
+                                    email=email,
+                                    password=password
+                                )
+                                
+                                # Add first and last name if provided
+                                if 'first_name' in row:
+                                    user.first_name = row['first_name']
+                                if 'last_name' in row:
+                                    user.last_name = row['last_name']
+                                user.save()
+                                
+                                # Create person
+                                person = Person.objects.create(
+                                    user=user,
+                                    role=role,
+                                    graduating_year=int(row['graduating_year']) if row.get('graduating_year') else None,
+                                )
+                                
+                                # Add to new users list
+                                new_users.append({
+                                    'email': email,
+                                    'username': username,
+                                    'password': password,
+                                    'full_name': user.get_full_name() or username,
+                                    'role': role_title
+                                })
+                                
+                                success_count += 1
+                            else:
+                                raise ValidationError(f"Row {reader.line_num}: User with email {email} not found and create_users is not enabled")
+                    
+                    except Exception as e:
+                        error_messages.append(f'Row {reader.line_num}: Error - {str(e)}')
+                
+                # Show results
+                if success_count:
+                    self.message_user(request, f'Successfully processed {success_count} people')
+                
+                for error in error_messages:
+                    self.message_user(request, error, level=messages.WARNING)
+                
+                # Store import results in session for download
+                request.session['import_results'] = new_users
+                
+                # If we have new users, show the results page
+                if new_users:
+                    context = {'new_users': new_users}
+                    return render(request, "admin/import_results.html", context)
+                
+                return HttpResponseRedirect("../")
+            
+            except Exception as e:
+                self.message_user(request, f'Error processing CSV file: {str(e)}', level=messages.ERROR)
+                return HttpResponseRedirect("../")
+        
+        form = CsvImportForm()
+        # Change the help text for the form
+        form.fields['csv_file'].help_text = 'The file should have email and role columns. Optional columns: first_name, last_name, graduating_year'
+        payload = {
+            "form": form,
+            "title": "Import People from CSV"
+        }
+        return render(request, "admin/csv_form.html", payload)
+
     @admin.display(description='Full Name')
     def get_full_name(self, obj):
         return obj.user.get_full_name() or obj.user.username
@@ -429,11 +595,24 @@ class PersonAdmin(VisibilityModelAdmin):
 
 @admin.register(Group)
 class GroupAdmin(VisibilityModelAdmin):
-    list_display = ('name', 'visibility_badge', 'description', 'core_competency_1', 'core_competency_2', 'core_competency_3', 'last_modified')
+    list_display = ('name', 'visibility_badge', 'get_facilitators', 'description', 'core_competency_1', 'core_competency_2', 'core_competency_3', 'last_modified')
     search_fields = ('name', 'description')
     list_filter = ('is_public', 'core_competency_1', 'core_competency_2', 'core_competency_3')
     filter_horizontal = ('members',)
     inlines = [ParticipationInline]
+
+    @admin.display(description='Facilitators')
+    def get_facilitators(self, obj):
+        # Find all facilitators for this group
+        facilitators = obj.members.filter(
+            role__title='Facilitator', 
+            participation__group=obj
+        ).distinct()
+        
+        # Return a comma-separated list of facilitator names
+        if facilitators.exists():
+            return ", ".join([f.user.get_full_name() or f.user.username for f in facilitators])
+        return "-"
 
     def has_view_permission(self, request, obj=None):
         # Everyone can view all groups
@@ -471,6 +650,9 @@ class ParticipationAdmin(admin.ModelAdmin):
     list_display = ('person', 'group', 'hours', 'special_recognition', 'years_display', 'elementary', 'high')
     list_filter = ('elementary', 'high', 'group')
     search_fields = ('person__user__username', 'group__name')
+    formfield_overrides = {
+        models.JSONField: {'widget': YearSelectorWidget()},
+    }
 
     def years_display(self, obj):
         return ", ".join(map(str, obj.years))

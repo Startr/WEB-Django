@@ -1,5 +1,35 @@
 from django import forms
 from .models import Role, Person, Group, Participation, CoreCompetency, Theme, Badges, Pathways
+from .admin_widgets import YearSelectorWidget
+import json
+
+
+class YearField(forms.JSONField):
+    """Custom field for selecting years using the YearSelectorWidget"""
+    widget = YearSelectorWidget
+
+    def __init__(self, *args, **kwargs):
+        year_range = kwargs.pop('year_range', 10)
+        super().__init__(*args, **kwargs)
+        self.widget = YearSelectorWidget(year_range=year_range)
+
+    def to_python(self, value):
+        """Convert input value to Python list for internal use"""
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except (ValueError, TypeError):
+                return []
+        return value or []
+
+    def prepare_value(self, value):
+        """Prepare value for display in the widget"""
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except (ValueError, TypeError):
+                return []
+        return value or []
 
 
 class RoleForm(forms.ModelForm):
@@ -140,6 +170,7 @@ class GroupForm(forms.ModelForm):
 
 
 class ParticipationForm(forms.ModelForm):
+    years = YearField(help_text="Select the years for this participation")
 
     class Meta:
         model = Participation
@@ -417,4 +448,4 @@ class PathwaysForm(forms.ModelForm):
         return super(PathwaysForm, self).validate_unique()
 
     def save(self, commit=True):
-        return super(PathwaysForm, self).save(commit)    
+        return super(PathwaysForm, self).save(commit)
