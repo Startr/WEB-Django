@@ -1,6 +1,6 @@
 # Startr/WEB-Django
 
-## v0.6.0
+## v0.7.0
 
 ## Major new features and functionality.
  
