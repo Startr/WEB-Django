@@ -34,9 +34,25 @@
 
         {% if user.is_authenticated %}
             <h4>Members</h4>
+            
+            {% if members_filtered %}
+                <div class="info-message" style="background-color: #f8f9fa; border-left: 4px solid #17a2b8; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+                    <p>For privacy reasons, you can only see group members who are yourself or your children.</p>
+                </div>
+            {% endif %}
+            
             <ul style="--lis: none;">
-            {% for member in group.members.all %}
-                <li>{{ member }}</li>
+            {% for member in visible_members %}
+                <li>
+                    <a href="{% url 'experiences:person_detail' member.id %}">{{ member.user.get_full_name|default:member.user.username }}</a>
+                    {% if member.user == user %}
+                        <span style="color: #28a745; font-style: italic; margin-left: 5px;">(You)</span>
+                    {% elif not user.is_staff and not user.is_superuser %}
+                        <span style="color: #007bff; font-style: italic; margin-left: 5px;">(Your Child)</span>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>No visible members for this group.</li>
             {% endfor %}
             </ul>
         {% endif %}

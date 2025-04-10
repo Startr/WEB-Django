@@ -84,8 +84,32 @@ class GroupDetailView(DetailView):
         return super(GroupDetailView, self).get_slug_field()
 
     def get_context_data(self, **kwargs):
-        ret = super(GroupDetailView, self).get_context_data(**kwargs)
-        return ret
+        context = super(GroupDetailView, self).get_context_data(**kwargs)
+        user = self.request.user
+        group = self.object
+        
+        # Filter members based on user permissions
+        if user.is_superuser or user.groups.filter(name='Administrators').exists() or user.is_staff:
+            # Staff, superusers, and administrators can see all members
+            context['visible_members'] = group.members.all()
+        else:
+            try:
+                person = user.person
+                # Get IDs of the user and their children/students
+                visible_person_ids = [person.id]
+                visible_person_ids.extend(person.students.values_list('id', flat=True))
+                
+                # Only show members who are the user themselves or their children
+                context['visible_members'] = group.members.filter(id__in=visible_person_ids)
+                
+                # Add a flag to indicate filtering is in place
+                context['members_filtered'] = True
+            except:
+                # If user doesn't have a person profile, show no members
+                context['visible_members'] = group.members.none()
+                context['members_filtered'] = True
+        
+        return context
 
     def get_context_object_name(self, obj):
         return super(GroupDetailView, self).get_context_object_name(obj)
