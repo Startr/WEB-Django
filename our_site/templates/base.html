@@ -7,7 +7,7 @@
 {{ block.super }}
 <!-- Additional head content can go here -->
 <!-- Override favicon with configurable one from django-constance -->
-<link rel="shortcut icon" type="image/png" href="{{ MEDIA_URL }}{{ config.SITE_FAVICON }}" />
+<link rel="shortcut icon" type="image/png" href="{{ config.SITE_FAVICON }}" />
 {% endblock %}
 
 {% block title-bar %}
