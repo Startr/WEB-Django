@@ -151,15 +151,21 @@ LOGIN_REDIRECT_URL = '/'
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
 CONSTANCE_CONFIG = {
-    'SITE_FAVICON': ('/media/logos/Study_Logo_H_Blue-Crest.png', 'Site favicon path', str),
-    'ADMIN_SITE_ICON': ('', 'Optional admin site icon path (leave empty to use SITE_FAVICON)', str),
+    'SITE_FAVICON': ('', 'Optional site favicon path', str),
+    'ADMIN_SITE_ICON': ('', 'Optional admin site icon path \n(leave empty to use SITE_FAVICON)', str),
     'SITE_TITLE': ('Start Site', 'Title for the site', str),
+    'SITE_SUBTITLE': ('', 'Subtitle for the site', str),
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
-    'Site Settings': (
+    '1. Site Settings': (
         'SITE_FAVICON',
-        'ADMIN_SITE_ICON',
         'SITE_TITLE',
+        'SITE_SUBTITLE',
     ),
+    '2. Admin Settings': {
+        'fields': (
+            'ADMIN_SITE_ICON',
+        ),'collapse': True
+    },
 }
