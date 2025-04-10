@@ -8,6 +8,7 @@ django = "~=4.2.16"
 requests = "*"
 pillow = "*"
 ipython = "*"
+django-constance = {extras = ["database"], version = "*"}
 
 [dev-packages]
 

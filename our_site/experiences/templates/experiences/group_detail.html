@@ -15,7 +15,7 @@
         {{ group.description }} 
     </p>
  
-        <ul style="--lis: none;">
+        <ul style="--lis:none">
             
                
                 <li>
@@ -34,14 +34,30 @@
 
         {% if user.is_authenticated %}
             <h4>Members</h4>
-            <ul style="--lis: none;">
-            {% for member in group.members.all %}
-                <li>{{ member }}</li>
+            
+            {% if members_filtered %}
+                <div class="info-message" style="--bgc:#f8f9fa; --bl:4px solid #17a2b8; --p:10px; --mb:15px; --radius:4px">
+                    <p>For privacy reasons, you can only see group members who are yourself or your children.</p>
+                </div>
+            {% endif %}
+            
+            <ul style="--lis:none">
+            {% for member in visible_members %}
+                <li>
+                    <a href="{% url 'experiences:person_detail' member.id %}">{{ member.user.get_full_name|default:member.user.username }}</a>
+                    {% if member.user == user %}
+                        <span style="--c:#28a745; --fs:italic; --ml:5px">(You)</span>
+                    {% elif not user.is_staff and not user.is_superuser %}
+                        <span style="--c:#007bff; --fs:italic; --ml:5px">(Your Child)</span>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>No visible members for this group.</li>
             {% endfor %}
             </ul>
         {% endif %}
 
-    <form style="display:inline;" action={% url "experiences:group_delete" group.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ group }}?')">{% csrf_token %}
+    <form style="--d:inline" action={% url "experiences:group_delete" group.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ group }}?')">{% csrf_token %}
         
     </form>
 

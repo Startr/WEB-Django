@@ -13,16 +13,9 @@
     {{ form.as_p }}
     <input type="submit" value="Update" />
 </form>
-<a href={%
-        url "experiences:theme_detail" 
-        theme.pk 
-    %}
-    > Cancel </a>
-<form style="display:inline;" 
-    action={% 
-        url "experiences:theme_delete" 
-        theme.pk 
-    %} 
+<a href={% url "experiences:theme_detail" theme.pk %}>Cancel</a>
+<form style="--d:inline" 
+    action={% url "experiences:theme_delete" theme.pk %}
     method="post" 
     onsubmit="return confirm('Are you sure you want to delete {{ theme }}?')">{% csrf_token %}
     <input type="submit" value="Delete" />

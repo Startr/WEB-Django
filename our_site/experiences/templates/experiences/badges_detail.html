@@ -8,7 +8,7 @@
     <h2><a href={% url "experiences:badges_list" %}>Badges</a></h2>
     <h3>{{ badges }} | <a href={% url "experiences:badges_update" badges.pk %}>Update</a></h3>   
 <hr>        
-        <ul style="--lis: none;">
+        <ul style="--lis:none">
             
                 <li>
                     : {{ badges.title }}
@@ -27,7 +27,7 @@
                 </li>
             
         </ul>
-    <form style="display:inline;" action={% url "experiences:badges_delete" badges.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ badges }}?')">{% csrf_token %}
+    <form style="--d:inline" action={% url "experiences:badges_delete" badges.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ badges }}?')">{% csrf_token %}
         
     </form>
 

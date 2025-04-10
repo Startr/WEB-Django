@@ -1,8 +1,16 @@
 # Startr/WEB-Django
 
-## v0.4
+## v0.7.0
 
 ## Major new features and functionality.
+
+ - Site-wide configuration using django-constance
+ - Refactored styles using Startr.Style Utilities
+ - Enhanced user-specific views and permissions
+ - CSV import functionality for people data
+ - Custom YearSelectorWidget for improved date handling
+ - Dynamic site title, subtitle, and favicon configuration
+ - Improved media handling for profile pictures
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
 [![Docker Stars](https://img.shields.io/docker/stars/startr/web-django.svg)](https://hub.docker.com/r/startr/web-django)
@@ -50,6 +58,26 @@ make it_startr
 ```
 
 ## Recent Updates
+
+### Site Configuration with django-constance
+- Added dynamic site configuration (title, subtitle, favicon) using django-constance
+- Integrated configuration with admin interface for easy management
+- Updated templates to use dynamic configuration values
+- Improved favicon handling through media uploads
+
+### Style and UX Improvements
+- Refactored inline styles to Startr.Style Utilities for better maintainability
+- Enhanced group detail view with permission-based member filtering
+- Improved person and participation lists with user-specific messages
+- Simplified update/delete options based on user roles
+- Enhanced person detail view with profile picture display
+- Updated CSV import form layout with clearer instructions
+
+### New Components and Features
+- Implemented YearSelectorWidget for intuitive year selection in forms
+- Added CSV import functionality for people data
+- Enhanced profile picture display in person detail views
+- Updated database schema to support new features
 
 ### Media Management
 - Reorganized media files into a proper `/media` structure

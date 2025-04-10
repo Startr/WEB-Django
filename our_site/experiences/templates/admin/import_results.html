@@ -15,7 +15,7 @@
 <h1>Import Results</h1>
 
 <div class="module">
-    <div style="margin-bottom: 20px;">
+    <div style="--mb:20px">
         <a href="{% url 'admin:download-import-results' %}" class="button">
             {% trans "Download CSV" %}
         </a>
@@ -25,30 +25,30 @@
     <h2>New User Accounts</h2>
     <p>The following new accounts were created. Be sure to provide users with their login information.</p>
 
-    <table style="width: 100%;">
+    <table style="--w:100%">
         <thead>
             <tr>
-                <th style="padding: 8px;">Email</th>
-                <th style="padding: 8px;">Name</th>
-                <th style="padding: 8px;">Username</th>
-                <th style="padding: 8px;">Password</th>
-                <th style="padding: 8px;">Role</th>
+                <th style="--p:8px">Email</th>
+                <th style="--p:8px">Name</th>
+                <th style="--p:8px">Username</th>
+                <th style="--p:8px">Password</th>
+                <th style="--p:8px">Role</th>
             </tr>
         </thead>
         <tbody>
             {% for user in new_users %}
             <tr>
-                <td style="padding: 8px;">{{ user.email }}</td>
-                <td style="padding: 8px;">{{ user.full_name }}</td>
-                <td style="padding: 8px;">{{ user.username }}</td>
-                <td style="padding: 8px;">{{ user.password }}</td>
-                <td style="padding: 8px;">{{ user.role }}</td>
+                <td style="--p:8px">{{ user.email }}</td>
+                <td style="--p:8px">{{ user.full_name }}</td>
+                <td style="--p:8px">{{ user.username }}</td>
+                <td style="--p:8px">{{ user.password }}</td>
+                <td style="--p:8px">{{ user.role }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <div style="margin-top: 20px;">
+    <div style="--mt:20px">
         <a href="{% url 'admin:experiences_person_changelist' %}" class="button default">
             {% trans "Return to People" %}
         </a>

@@ -10,7 +10,11 @@ help:
 	@echo ""
 	@echo "Available make commands:"
 	@echo ""
-	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'
+	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | \
+		awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ { \
+		if ($$1 !~ "^[#.]") {print $$1}}' | \
+		sort | \
+		grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'
 	@echo ""
 
 # Docker container name
@@ -25,11 +29,15 @@ django:
 		echo "Usage: make django cmd='command'"; \
 		echo "Example: make django cmd='migrate'"; \
 	else \
-		docker exec -it $(CONTAINER) bash -c "cd /project/our_site && python manage.py $(cmd)"; \
+		docker exec -it $(CONTAINER) bash -c "\
+			cd /project/our_site && \
+			python manage.py $(cmd)"; \
 	fi
 
 setup_groups:
-	docker exec -it $(CONTAINER) bash -c "cd /project/our_site && python manage.py setup_groups"
+	docker exec -it $(CONTAINER) bash -c "\
+		cd /project/our_site && \
+		python manage.py setup_groups"
 
 it_run:
 	@bash -c 'bash <(curl -sL startr.sh) run'
@@ -45,6 +53,44 @@ it_startr:
 	# done'
 	git restore ./our_site/experiences/ && git clean -fd ./our_site/experiences/; \
 	docker exec -it web-django-develop bash -c "cd /project/our_site && ./manage.py startr experiences && ./manage.py runserver 0.0.0.0:8000";
+
+update_submodules:
+	@echo "Developer instructions: Please update your Dockerfile manually to add the appropriate 'RUN' command for installing git (using apt-get or apk) and to include the submodule update command. Then run 'git submodule update --init --recursive'."
+
+# Check if .gitmodules exists (returns 1 if present, empty otherwise)
+HAS_SUBMODULE := $(shell [ -f .gitmodules ] && echo 1)
+
+# for deployment to work we need to be logged in to caprover
+# and have the caprover CLI installed
+# check if caprover is installed
+HAS_CAPROVER := $(shell command -v caprover 2>/dev/null && echo 1)
+# check if we are logged in to caprover
+HAS_CAPROVER_LOGIN := $(shell caprover ls | grep -q "Logged in" && echo 1)
+
+
+deploy:
+	@if [ "$(HAS_CAPROVER)" = "" ]; then \
+		echo "CapRover CLI is not installed. Please install it first."; \
+		echo "You can install it using npm: npm install -g caprover"; \
+		exit 1; \
+	elif [ "$(HAS_CAPROVER_LOGIN)" = "" ]; then \
+		echo "You are not logged in to CapRover."; \
+		echo "Please log in using the command: caprover login"; \
+		exit 1; \
+	fi
+	@if [ "$(HAS_SUBMODULE)" = "1" ]; then \
+		echo "Submodules detected."; \
+		echo "Instead of using the default 'caprover deploy' command,";\
+		echo "we will create a tar of the project and deploy it"; \
+		echo "Creating tar of project..."; \
+		git ls-files --recurse-submodules | tar -czf deploy.tar -T -; \
+		echo "Deploying to CapRover using the tar file..."; \
+		npx caprover deploy -t ./deploy.tar; \
+		rm ./deploy.tar; \
+	else \
+		echo "No submodules detected. Deploying normally..."; \
+		npx caprover deploy; \
+	fi
 
 minor_release:
 	# Start a minor release with incremented minor version

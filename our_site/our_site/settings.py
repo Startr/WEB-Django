@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -49,6 +50,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'our_site.apps.ConstanceConfig',  # Use our custom app config instead of 'constance'
+    'constance.backends.database',
 ]
 
 MIDDLEWARE = [
@@ -67,7 +70,7 @@ ROOT_URLCONF = 'our_site.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # Add this line to include project-level templates
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -75,6 +78,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'constance.context_processors.config',  # Add constance context processor
             ],
         },
     },
@@ -126,11 +130,44 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
+STATIC_URL = '/static/'
 
-STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/'
+
+# Constance settings
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+
+CONSTANCE_CONFIG = {
+    'SITE_FAVICON': ('', 'Optional site favicon path', str),
+    'ADMIN_SITE_ICON': ('', 'Optional admin site icon path \n(leave empty to use SITE_FAVICON)', str),
+    'SITE_TITLE': ('Start Site', 'Title for the site', str),
+    'SITE_SUBTITLE': ('', 'Subtitle for the site', str),
+    'ADMIN_SITE_TITLE': ('Startr Administration', 'Title for the Startr Powered admin site', str),
+}
+
+CONSTANCE_CONFIG_FIELDSETS = {
+    '1. Site Settings': (
+        'SITE_FAVICON',
+        'SITE_TITLE',
+        'SITE_SUBTITLE',
+    ),
+    '2. Admin Settings': {
+        'fields': (
+            'ADMIN_SITE_ICON',
+            'ADMIN_SITE_TITLE',
+        ),'collapse': True
+    },
+}

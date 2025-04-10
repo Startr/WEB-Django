@@ -149,7 +149,10 @@ class PersonDetailView(DetailView):
             person.user == user
         )
         context['can_edit'] = can_edit
-
+        
+        # Add person's activity participations to context
+        context['participations'] = person.participation_set.all()
+        
         return context
 
     def get_context_object_name(self, obj):
