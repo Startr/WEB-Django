@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'constance',
+    'our_site.apps.ConstanceConfig',  # Use our custom app config instead of 'constance'
     'constance.backends.database',
 ]
 
@@ -155,6 +155,7 @@ CONSTANCE_CONFIG = {
     'ADMIN_SITE_ICON': ('', 'Optional admin site icon path \n(leave empty to use SITE_FAVICON)', str),
     'SITE_TITLE': ('Start Site', 'Title for the site', str),
     'SITE_SUBTITLE': ('', 'Subtitle for the site', str),
+    'ADMIN_SITE_TITLE': ('Startr Administration', 'Title for the Startr Powered admin site', str),
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -166,6 +167,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     '2. Admin Settings': {
         'fields': (
             'ADMIN_SITE_ICON',
+            'ADMIN_SITE_TITLE',
         ),'collapse': True
     },
 }

@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
 
-{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ config.ADMIN_SITE_TITLE }}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block branding %}
-<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ config.ADMIN_SITE_TITLE }}</a></h1>
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
