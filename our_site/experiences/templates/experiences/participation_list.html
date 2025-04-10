@@ -9,6 +9,10 @@
     {%if user.is_authenticated %}
         {% if can_create %}
             <h3><a href={% url "experiences:participation_create" %}>Create new Participation</a></h3>
+        {% else %}
+            <div class="info-message" style="background-color: #f8f9fa; border-left: 4px solid #17a2b8; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+                <p>You are viewing your activity participations and your children's activity participations.</p>
+            </div>
         {% endif %}   
         <hr>
         <input type="text" placeholder="Search..." id="search" 
@@ -20,15 +24,27 @@
                     show <li/> in #participation_list when its textContent.toLowerCase() contains my value.toLowerCase()">  
         <ul id="participation_list">
         {% for participation in participation_list %}
-            <li>
+            <li style="margin-bottom: 10px; {% if participation.person.user == user %}background-color: #f0f8ff; padding: 5px; border-radius: 3px;{% endif %}">
                 <a href={% url "experiences:participation_detail" participation.pk %}>
                     {{ participation }}
                 </a> 
                 {% if participation.person.user == user %}
                     <span class="badge badge-primary">Your record</span>
                 {% else %}
-                    <span class="badge badge-secondary">{{ participation.person.get_full_name }}'s record</span>
+                    <span class="badge badge-info">Your child's record</span>
+                    <div style="margin-top: 3px; margin-left: 10px; font-size: 90%; color: #6c757d;">
+                        {{ participation.person.user.get_full_name|default:participation.person.user.username }}
+                    </div>
                 {% endif %}
+                
+                <div style="margin-top: 3px; margin-left: 10px; font-size: 90%;">
+                    {% if participation.years %}
+                        Years: {{ participation.years|join:", " }} •
+                    {% endif %}
+                    {% if participation.hours %}
+                        {{ participation.hours }} hours
+                    {% endif %}
+                </div>
             </li>
         {% empty %}
             <li>No Activity Participation records found.</li>
@@ -55,6 +71,10 @@
             .badge-secondary {
                 color: #fff;
                 background-color: #6c757d;
+            }
+            .badge-info {
+                color: #fff;
+                background-color: #17a2b8;
             }
         </style>
     {% else %}
