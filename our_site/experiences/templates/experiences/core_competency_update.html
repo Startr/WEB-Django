@@ -14,9 +14,7 @@
     <input type="submit" value="Update" />
 </form>
 <a href={% url "experiences:core_competency_detail" core_competency.pk %}>Cancel</a>
-<form style="
-    display: inline;
-" 
+<form style="--d:inline" 
     action={% url "experiences:core_competency_delete" core_competency.pk %}
     method="post" 
     onsubmit="return confirm('Are you sure you want to delete {{ core_competency }}?')">{% csrf_token %}

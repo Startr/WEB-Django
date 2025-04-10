@@ -10,7 +10,7 @@
     {% if user.is_staff or user.is_superuser %}
         <h3><a href={% url "experiences:person_create" %}>Create new Person</a></h3>   
     {% else %}
-        <div class="info-message" style="background-color: #f8f9fa; border-left: 4px solid #17a2b8; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+        <div class="info-message" style="--bgc:#f8f9fa; --bl:4px solid #17a2b8; --p:10px; --mb:15px; --radius:4px">
             <p>You are viewing your profile and your children's profiles.</p>
         </div>
     {% endif %}
@@ -24,23 +24,21 @@
                 show <li/> in #person_list when its textContent.toLowerCase() contains my value.toLowerCase()">  
     <ul id="person_list">
     {% for person in person_list %}
-        <li {% if person.id == user.person.id %}style="background-color: #f0f8ff; padding: 5px; border-radius: 3px;"{% endif %}>
+        <li {% if person.id == user.person.id %}style="--bgc:#f0f8ff; --p:5px; --radius:3px"{% endif %}>
             <a href={% url "experiences:person_detail" person.pk %}>{{ person.user.get_full_name|default:person.user.username }}</a>
             {% if person.graduating_year %}
                 (Class of {{ person.graduating_year }})
             {% endif %}
             
             {% if person.id == user.person.id %}
-                <span style="color: #28a745; font-style: italic;">(You)</span>
+                <span style="--c:#28a745; --fs:italic">(You)</span>
             {% elif person.id in students_ids %}
-                <span style="color: #007bff; font-style: italic;">(Your Child)</span>
+                <span style="--c:#007bff; --fs:italic">(Your Child)</span>
             {% endif %}
             
             {% if user.is_staff or user.is_superuser %}
                 | <a href={% url "experiences:person_update" person.pk %}>Update</a>
-                <form style="
-                    display: inline;
-                " action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
+                <form style="--d:inline" action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">{% csrf_token %}
                     <input type="submit" value="Delete" />
                 </form>   
             {% endif %}

@@ -14,9 +14,7 @@
     <input type="submit" value="Update" />
 </form>
 <a href={% url "experiences:pathways_detail" pathways.pk %}>Cancel</a>
-<form style="
-    display: inline;
-" 
+<form style="--d:inline" 
     action={% url "experiences:pathways_delete" pathways.pk %}
     method="post" 
     onsubmit="return confirm('Are you sure you want to delete {{ pathways }}?')">{% csrf_token %}

@@ -9,14 +9,14 @@
 
 {% block content %}
 <div class="card">
-    <article style="--d:flex; gap:2em; --p:1em 0;--p-sm: 1em 2em;">
-        <section style="--d:flex; --fd:column; --jc: space-around; --minw:4em; --m:0 1em">
+    <article style="--d:flex; gap:2em; --p:1em 0; --p-sm:1em 2em">
+        <section style="--d:flex; --fd:column; --jc:space-around; --minw:4em; --m:0 1em">
             <img src="{% static 'images/basketball.webp' %}" alt="Basketball">
             <img src="{% static 'images/music.webp' %}" alt="Music">
             <img src="{% static 'images/world.webp' %}" alt="World">
             <img src="{% static 'images/robot.webp' %}" alt="Robotics">
         </section>
-        <section style="--d:flex; --fd:column; --jc: space-around;">
+        <section style="--d:flex; --fd:column; --jc:space-around">
             {% if user.is_superuser %}
             <p>Welcome {{ user.username }}!. As an administrator, you have the ability to add teams, clubs, and
                 activities so that students

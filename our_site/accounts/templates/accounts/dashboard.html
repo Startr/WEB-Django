@@ -14,12 +14,12 @@
         </div>
     {% else %}
         <div class="card">
-            <div style="display: flex; align-items: center;">
+            <div style="--d:flex; --ai:center">
                 {% if person.profile_picture %}
                     <img src="{{ person.profile_picture.url }}" alt="{{ person }}" class="profile-img">
                 {% else %}
-                    <div class="profile-img" style="background-color: #ccc; display: flex; align-items: center; justify-content: center;">
-                        <span style="font-size: 36px; color: #fff;">{{ person.user.first_name|first }}{{ person.user.last_name|first }}</span>
+                    <div class="profile-img" style="--bgc:#ccc; --d:flex; --ai:center; --jc:center">
+                        <span style="--size:36px; --c:#fff">{{ person.user.first_name|first }}{{ person.user.last_name|first }}</span>
                     </div>
                 {% endif %}
                 <div>
@@ -38,16 +38,16 @@
                 {% for student in students %}
                     <div class="student-card">
                         {% if student.profile_picture %}
-                            <img src="{{ student.profile_picture.url }}" alt="{{ student }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                            <img src="{{ student.profile_picture.url }}" alt="{{ student }}" style="--w:50px; --h:50px; --radius:50%; --objf:cover">
                         {% else %}
-                            <div style="--w: 50px; --h: 46px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center;">
-                                <span style="font-size: 18px; color: #fff;">{{ student.user.first_name|first }}{{ student.user.last_name|first }}</span>
+                            <div style="--w:50px; --h:46px; --radius:50%; --bgc:#ccc; --d:flex; --ai:center; --jc:center">
+                                <span style="--size:18px; --c:#fff">{{ student.user.first_name|first }}{{ student.user.last_name|first }}</span>
                             </div>
                         {% endif %}
-                        <div class="student-info" style="--w: 100%">
+                        <div class="student-info" style="--w:100%">
                             <strong>{{ student.user.get_full_name|default:student.user.username }}</strong>
                             <div>Relationship: {{ student_relationships|get_item:student.id|default:"Guardian" }}</div>
-                            <div style="--d:flex;--ac: center;--jc: space-evenly;">
+                            <div style="--d:flex; --ac:center; --jc:space-evenly">
                                 <a style="--d:block" href="{% url 'experiences:person_detail' student.id %}">View Profile</a>
                                 <a style="--d:block"  href="{% url 'experiences:participation_list' %}?person={{ student.id }}">View Participations</a>
                             </div>
@@ -63,10 +63,10 @@
                 {% for guardian in guardians %}
                     <div class="student-card">
                         {% if guardian.profile_picture %}
-                            <img src="{{ guardian.profile_picture.url }}" alt="{{ guardian }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                            <img src="{{ guardian.profile_picture.url }}" alt="{{ guardian }}" style="--w:50px; --h:50px; --radius:50%; --objf:cover">
                         {% else %}
-                            <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center;">
-                                <span style="font-size: 18px; color: #fff;">{{ guardian.user.first_name|first }}{{ guardian.user.last_name|first }}</span>
+                            <div style="--w:50px; --h:50px; --radius:50%; --bgc:#ccc; --d:flex; --ai:center; --jc:center">
+                                <span style="--size:18px; --c:#fff">{{ guardian.user.first_name|first }}{{ guardian.user.last_name|first }}</span>
                             </div>
                         {% endif %}
                         <div class="student-info">
@@ -96,7 +96,7 @@
             {% else %}
                 <p>You have no activity participations yet!</p>
                 {% if person.role|lower == 'parent' %}
-                    <div class="parent-suggestion" style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #007bff; border-radius: 4px;">
+                    <div class="parent-suggestion" style="--mt:15px; --p:10px; --bgc:#f8f9fa; --bl:4px solid #007bff; --radius:4px">
                         <p><strong>Get Involved!</strong> As a parent, you can participate in our vibrant parent community. Learn more at <a href="https://www.thestudy.qc.ca/about/parent-community" target="_blank">thestudy.qc.ca/about/parent-community</a>.</p>
                     </div>
                 {% endif %}

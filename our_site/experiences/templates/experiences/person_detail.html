@@ -7,13 +7,13 @@
 {% block content %}
     <h2><a href={% url "experiences:person_list" %}>People</a></h2>
     {% if user.is_authenticated %}
-        <div class="person-header" style="margin-bottom: 20px;">
-            <div style="display: flex; align-items: center;">
+        <div class="person-header" style="--mb:20px">
+            <div style="--d:flex; --ai:center">
                 {% if person.profile_picture %}
-                    <img src="{{ person.profile_picture.url }}" alt="{{ person }}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 20px;">
+                    <img src="{{ person.profile_picture.url }}" alt="{{ person }}" style="--w:120px; --h:120px; --radius:50%; --objf:cover; --mr:20px">
                 {% else %}
-                    <div style="width: 120px; height: 120px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 20px;">
-                        <span style="font-size: 48px; color: #fff;">{{ person.user.first_name|first }}{{ person.user.last_name|first }}</span>
+                    <div style="--w:120px; --h:120px; --radius:50%; --bgc:#ccc; --d:flex; --ai:center; --jc:center; --mr:20px">
+                        <span style="--size:48px; --c:#fff">{{ person.user.first_name|first }}{{ person.user.last_name|first }}</span>
                     </div>
                 {% endif %}
                 <div>
@@ -33,17 +33,17 @@
         <hr>       
         
         {% if person.guardians.exists %}
-        <div class="card" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+        <div class="card" style="--mb:20px; --p:15px; --b:1px solid #ddd; --radius:5px">
             <h4>Guardians:</h4>
-            <ul style="list-style: none; padding-left: 0;">
+            <ul style="--lis:none; --pl:0">
             {% for relationship in person.student_relationships.all %}
                 {% if relationship.is_active %}
-                <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                <li style="--mb:10px; --d:flex; --ai:center">
                     {% if relationship.guardian.profile_picture %}
-                        <img src="{{ relationship.guardian.profile_picture.url }}" alt="{{ relationship.guardian }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 10px;">
+                        <img src="{{ relationship.guardian.profile_picture.url }}" alt="{{ relationship.guardian }}" style="--w:50px; --h:50px; --radius:50%; --objf:cover; --mr:10px">
                     {% else %}
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                            <span style="font-size: 18px; color: #fff;">{{ relationship.guardian.user.first_name|first }}{{ relationship.guardian.user.last_name|first }}</span>
+                        <div style="--w:50px; --h:50px; --radius:50%; --bgc:#ccc; --d:flex; --ai:center; --jc:center; --mr:10px">
+                            <span style="--size:18px; --c:#fff">{{ relationship.guardian.user.first_name|first }}{{ relationship.guardian.user.last_name|first }}</span>
                         </div>
                     {% endif %}
                     <div>
@@ -60,17 +60,17 @@
         {% endif %}
 
         {% if person.students.exists %}
-        <div class="card" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+        <div class="card" style="--mb:20px; --p:15px; --b:1px solid #ddd; --radius:5px">
             <h4>Students:</h4>
-            <ul style="list-style: none; padding-left: 0;">
+            <ul style="--lis:none; --pl:0">
             {% for relationship in person.guardian_relationships.all %}
                 {% if relationship.is_active %}
-                <li style="margin-bottom: 10px; display: flex; align-items: center;">
+                <li style="--mb:10px; --d:flex; --ai:center">
                     {% if relationship.student.profile_picture %}
-                        <img src="{{ relationship.student.profile_picture.url }}" alt="{{ relationship.student }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 10px;">
+                        <img src="{{ relationship.student.profile_picture.url }}" alt="{{ relationship.student }}" style="--w:50px; --h:50px; --radius:50%; --objf:cover; --mr:10px">
                     {% else %}
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #ccc; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                            <span style="font-size: 18px; color: #fff;">{{ relationship.student.user.first_name|first }}{{ relationship.student.user.last_name|first }}</span>
+                        <div style="--w:50px; --h:50px; --radius:50%; --bgc:#ccc; --d:flex; --ai:center; --jc:center; --mr:10px">
+                            <span style="--size:18px; --c:#fff">{{ relationship.student.user.first_name|first }}{{ relationship.student.user.last_name|first }}</span>
                         </div>
                     {% endif %}
                     <div>
@@ -86,12 +86,12 @@
         </div>
         {% endif %}
 
-        <div class="card" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+        <div class="card" style="--mb:20px; --p:15px; --b:1px solid #ddd; --radius:5px">
             <h4>Activities</h4>
             {% if participations %}
-                <ul style="padding-left: 15px;">
+                <ul style="--pl:15px">
                     {% for participation in participations %}
-                        <li style="margin-bottom: 10px;">
+                        <li style="--mb:10px">
                             <a href="{% url 'experiences:participation_detail' participation.id %}">
                                 {{ participation.group.name }} ({{ participation.years|join:", " }})
                             </a>
@@ -100,17 +100,17 @@
                             {% endif %}
                             
                             {% if participation.special_recognition %}
-                                <div style="margin-top: 5px; font-style: italic;">
+                                <div style="--mt:5px; --fs:italic">
                                     <strong>Special Recognition:</strong> {{ participation.special_recognition }}
                                 </div>
                             {% endif %}
                             
-                            <div style="margin-top: 5px;">
+                            <div style="--mt:5px">
                                 {% if participation.elementary %}
-                                    <span style="background-color: #17a2b8; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; margin-right: 5px;">Elementary</span>
+                                    <span style="--bgc:#17a2b8; --c:white; --p:3px 8px; --radius:3px; --size:12px; --mr:5px">Elementary</span>
                                 {% endif %}
                                 {% if participation.high %}
-                                    <span style="background-color: #007bff; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px;">High School</span>
+                                    <span style="--bgc:#007bff; --c:white; --p:3px 8px; --radius:3px; --size:12px">High School</span>
                                 {% endif %}
                             </div>
                         </li>
@@ -122,8 +122,8 @@
         </div>
 
         {% if user.is_staff or user.is_superuser %}
-        <div style="margin-top: 20px;">
-            <form style="display: inline;" action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">
+        <div style="--mt:20px">
+            <form style="--d:inline" action={% url "experiences:person_delete" person.pk %} method="post" onsubmit="return confirm('Are you sure you want to delete {{ person }}?')">
                 {% csrf_token %}
                 <input type="submit" value="Delete" class="btn btn-danger" />
             </form>
