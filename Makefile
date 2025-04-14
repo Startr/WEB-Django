@@ -63,7 +63,7 @@ HAS_SUBMODULE := $(shell [ -f .gitmodules ] && echo 1)
 # for deployment to work we need to be logged in to caprover
 # and have the caprover CLI installed
 # check if caprover is installed
-HAS_CAPROVER := $(shell command -v caprover 2>/dev/null && echo 1)
+HAS_CAPROVER := $(shell which caprover 2>/dev/null && echo 1)
 # check if we are logged in to caprover
 HAS_CAPROVER_LOGIN := $(shell caprover ls | grep -q "Logged in" && echo 1)
 
@@ -80,9 +80,9 @@ deploy:
 	fi
 	@if [ "$(HAS_SUBMODULE)" = "1" ]; then \
 		echo "Submodules detected."; \
-		echo "Instead of using the default 'caprover deploy' command,";\
-		echo "we will create a tar of the project and deploy it"; \
+		echo "We will create a tar of the project and deploy it"; \
 		echo "Creating tar of project..."; \
+		echo -e "\a"; \
 		git ls-files --recurse-submodules | tar -czf deploy.tar -T -; \
 		echo "Deploying to CapRover using the tar file..."; \
 		npx caprover deploy -t ./deploy.tar; \
