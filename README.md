@@ -1,6 +1,8 @@
 # Startr/WEB-Django
 
-## v0.7.0
+## v0.7.1
+
+ - example csv's and tweaks import
 
 ## Major new features and functionality.
 
