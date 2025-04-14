@@ -197,16 +197,19 @@ class PersonAdmin(VisibilityModelAdmin):
                     try:
                         # Check required fields
                         email = row.get('email', '').strip()
-                        role_title = row.get('role', '').strip()
+                        role_title = row.get('role', '').strip().lower()  # Normalize role to lowercase
                         
                         if not email or not role_title:
                             errors.append(f"Row {csv_reader.line_num}: Missing required fields")
                             skipped_rows += 1
                             continue
                         
-                        # Check if role exists
+                        # Check if role exists (case-insensitive)
                         try:
-                            role = Role.objects.get(title=role_title)
+                            # Use case-insensitive query
+                            role = Role.objects.filter(title__iexact=role_title).first()
+                            if not role:
+                                raise Role.DoesNotExist
                         except Role.DoesNotExist:
                             errors.append(f"Row {csv_reader.line_num}: Role '{role_title}' does not exist")
                             skipped_rows += 1
