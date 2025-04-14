@@ -4,7 +4,8 @@ from .models import *
 from django.core.cache import cache
 from django import forms
 from django.shortcuts import render
-from django.urls import path
+from django.urls import path, reverse
+from django import forms
 from django.contrib import messages
 import csv
 import random
@@ -71,17 +72,9 @@ class VisibilityModelAdmin(admin.ModelAdmin):
     make_private.short_description = "Make selected items private"
 
 
-class CsvImportForm(forms.Form):
-    csv_file = forms.FileField(
-        label='Select a CSV file',
-        help_text='The file should have guardian_email, student_email, relationship columns'
-    )
-    create_users = forms.BooleanField(
-        label='Create new users if not found',
-        required=False,
-        initial=True,
-        help_text='If checked, will create new users with random passwords for emails not found in the system'
-    )
+class CSVUploadForm(forms.Form):
+    csv_file = forms.FileField(label='CSV File')
+    create_users = forms.BooleanField(required=False, label='Create new users')
 
 
 def generate_password(length=10):
@@ -151,385 +144,346 @@ class PersonAdmin(VisibilityModelAdmin):
 
     def get_urls(self):
         urls = super().get_urls()
-        my_urls = [
-            path('import-csv/', self.import_csv, name='import-guardians-csv'),
-            path('download-results/', self.download_results, name='download-import-results'),
-            path('import-people/', self.import_people_csv, name='import-people-csv'),
+        custom_urls = [
+            path('import-people-csv/', 
+                 self.admin_site.admin_view(self.import_people_csv_view), 
+                 name='experiences_person_import-people-csv'),
+                 
+            path('import-guardians-csv/', 
+                 self.admin_site.admin_view(self.import_guardians_csv_view), 
+                 name='experiences_person_import-guardians-csv'),
+                 
+            path('download-csv-template/', 
+                 self.admin_site.admin_view(self.download_csv_template),
+                 name='download_people_csv_template'),
+                 
+            path('download-guardian-csv-template/', 
+                 self.admin_site.admin_view(self.download_guardian_csv_template),
+                 name='download_guardian_csv_template'),
+                 
+            path('download-imported-users/', 
+                 self.admin_site.admin_view(self.download_imported_users),
+                 name='download_imported_users'),
         ]
-        return my_urls + urls
-
-    def download_results(self, request):
-        """Download the import results as a CSV file"""
-        if not request.session.get('import_results'):
-            self.message_user(request, "No import results to download", level=messages.ERROR)
-            return HttpResponseRedirect("../")
-            
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="new_users.csv"'
-        
-        writer = csv.writer(response)
-        writer.writerow(['Email', 'Full Name', 'Username', 'Password', 'Role'])
-        
-        for result in request.session.get('import_results', []):
-            writer.writerow([
-                result.get('email', ''),
-                result.get('full_name', ''),
-                result.get('username', ''),
-                result.get('password', ''),
-                result.get('role', '')
-            ])
-            
-        return response
-
-    def import_csv(self, request):
-        if request.method == "POST":
-            try:
-                csv_file = TextIOWrapper(request.FILES["csv_file"].file, encoding='utf-8')
-                reader = csv.DictReader(csv_file)
-                create_users = 'create_users' in request.POST
+        return custom_urls + urls
+    
+    def import_people_csv_view(self, request):
+        """View to import people from CSV file."""
+        if request.method == 'POST':
+            form = CSVUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                csv_file = request.FILES['csv_file']
+                create_users = form.cleaned_data['create_users']
                 
-                # Validate CSV headers
-                required_fields = ['guardian_email', 'student_email', 'relationship']
-                missing_fields = [field for field in required_fields if field not in reader.fieldnames]
-                if missing_fields:
-                    raise ValidationError(f'Missing required fields in CSV: {", ".join(missing_fields)}')
-
-                # Process each row
-                success_count = 0
-                error_messages = []
-                new_users = []
-                default_role = None
+                # Process the CSV file
+                csv_file_wrapper = TextIOWrapper(csv_file.file, encoding='utf-8-sig')
+                csv_reader = csv.DictReader(csv_file_wrapper)
                 
-                try:
-                    # Try to get a default student role
-                    default_role = Role.objects.get(title__icontains='student')
-                except:
-                    try:
-                        # If no student role, get any role
-                        default_role = Role.objects.first()
-                    except:
-                        pass
-                
-                for row in reader:
-                    try:
-                        # Process guardian
-                        guardian = None
-                        try:
-                            guardian_user = User.objects.get(email=row['guardian_email'])
-                            guardian = Person.objects.get(user=guardian_user)
-                        except User.DoesNotExist:
-                            if create_users:
-                                # Create new user for guardian
-                                password = generate_password()
-                                guardian_email = row['guardian_email']
-                                username = guardian_email.split('@')[0]
-                                
-                                # Ensure unique username
-                                base_username = username
-                                count = 1
-                                while User.objects.filter(username=username).exists():
-                                    username = f"{base_username}{count}"
-                                    count += 1
-                                
-                                # Create user
-                                guardian_user = User.objects.create_user(
-                                    username=username,
-                                    email=guardian_email,
-                                    password=password
-                                )
-                                guardian_user.first_name = row.get('guardian_first_name', '')
-                                guardian_user.last_name = row.get('guardian_last_name', '')
-                                guardian_user.save()
-                                
-                                # Create person
-                                guardian = Person.objects.create(
-                                    user=guardian_user,
-                                    role=default_role
-                                )
-                                
-                                # Add to new users list
-                                new_users.append({
-                                    'email': guardian_email,
-                                    'username': username,
-                                    'password': password,
-                                    'full_name': guardian_user.get_full_name(),
-                                    'role': 'Guardian'
-                                })
-                            else:
-                                raise ValueError(f"Guardian with email {row['guardian_email']} not found")
-                        except Person.DoesNotExist:
-                            if create_users:
-                                # Create person for existing user
-                                guardian = Person.objects.create(
-                                    user=guardian_user,
-                                    role=default_role
-                                )
-                            else:
-                                raise ValueError(f"Person object for user {guardian_user.username} not found")
-                        
-                        # Process student
-                        student = None
-                        try:
-                            student_user = User.objects.get(email=row['student_email'])
-                            student = Person.objects.get(user=student_user)
-                        except User.DoesNotExist:
-                            if create_users:
-                                # Create new user for student
-                                password = generate_password()
-                                student_email = row['student_email']
-                                username = student_email.split('@')[0]
-                                
-                                # Ensure unique username
-                                base_username = username
-                                count = 1
-                                while User.objects.filter(username=username).exists():
-                                    username = f"{base_username}{count}"
-                                    count += 1
-                                
-                                # Create user
-                                student_user = User.objects.create_user(
-                                    username=username,
-                                    email=student_email,
-                                    password=password
-                                )
-                                student_user.first_name = row.get('student_first_name', '')
-                                student_user.last_name = row.get('student_last_name', '')
-                                student_user.save()
-                                
-                                # Create person
-                                student = Person.objects.create(
-                                    user=student_user,
-                                    role=default_role,
-                                    graduating_year=row.get('graduating_year', None)
-                                )
-                                
-                                # Add to new users list
-                                new_users.append({
-                                    'email': student_email,
-                                    'username': username,
-                                    'password': password,
-                                    'full_name': student_user.get_full_name(),
-                                    'role': 'Student'
-                                })
-                            else:
-                                raise ValueError(f"Student with email {row['student_email']} not found")
-                        except Person.DoesNotExist:
-                            if create_users:
-                                # Create person for existing user
-                                student = Person.objects.create(
-                                    user=student_user,
-                                    role=default_role,
-                                    graduating_year=row.get('graduating_year', None)
-                                )
-                            else:
-                                raise ValueError(f"Person object for user {student_user.username} not found")
-
-                        # Create or update relationship
-                        relationship, created = GuardianStudent.objects.get_or_create(
-                            guardian=guardian,
-                            student=student,
-                            defaults={
-                                'relationship': row['relationship'],
-                                'notes': row.get('notes', ''),
-                                'is_active': True
-                            }
-                        )
-
-                        if not created and not relationship.is_active:
-                            relationship.is_active = True
-                            relationship.relationship = row['relationship']
-                            if 'notes' in row:
-                                relationship.notes = row['notes']
-                            relationship.save()
-
-                        success_count += 1
-
-                    except Exception as e:
-                        error_messages.append(f'Row {reader.line_num}: Error - {str(e)}')
-
-                # Show results
-                if success_count:
-                    self.message_user(request, f'Successfully processed {success_count} relationships')
-                
-                for error in error_messages:
-                    self.message_user(request, error, level=messages.WARNING)
-                
-                # Store import results in session for download
-                request.session['import_results'] = new_users
-                
-                # If we have new users, show the results page
-                if new_users:
-                    context = {'new_users': new_users}
-                    return render(request, "admin/import_results.html", context)
-                
-                return HttpResponseRedirect("../")
-                
-            except Exception as e:
-                self.message_user(request, f'Error processing CSV file: {str(e)}', level=messages.ERROR)
-                return HttpResponseRedirect("../")
-
-        form = CsvImportForm()
-        payload = {"form": form}
-        return render(request, "admin/csv_form.html", payload)
-
-    def import_people_csv(self, request):
-        """Import people from a CSV file"""
-        if request.method == "POST":
-            try:
-                csv_file = TextIOWrapper(request.FILES["csv_file"].file, encoding='utf-8')
-                reader = csv.DictReader(csv_file)
-                create_users = 'create_users' in request.POST
-                
-                # Validate CSV headers
+                # Validate CSV structure
                 required_fields = ['email', 'role']
-                missing_fields = [field for field in required_fields if field not in reader.fieldnames]
-                if missing_fields:
-                    raise ValidationError(f'Missing required fields in CSV: {", ".join(missing_fields)}')
+                for field in required_fields:
+                    if field not in csv_reader.fieldnames:
+                        messages.error(request, f"CSV file missing required '{field}' column")
+                        return HttpResponseRedirect(request.path)
                 
-                # Validate that all roles exist
-                all_roles = set(Role.objects.values_list('title', flat=True))
+                # Track results for display
+                created_users = []
+                updated_people = 0
+                skipped_rows = 0
+                errors = []
                 
                 # Process each row
-                success_count = 0
-                error_messages = []
-                new_users = []
-                
-                for row in reader:
+                for row in csv_reader:
                     try:
-                        if not row['email'] or not row['role']:
-                            raise ValidationError(f"Row {reader.line_num}: Email and role are required fields")
-                            
-                        # Validate role
-                        role_title = row['role'].strip()
-                        if role_title not in all_roles:
-                            raise ValidationError(f"Row {reader.line_num}: Role '{role_title}' does not exist")
-                            
-                        try:
-                            role = Role.objects.get(title=role_title)
-                        except Role.DoesNotExist:
-                            raise ValidationError(f"Row {reader.line_num}: Role '{role_title}' does not exist")
+                        # Check required fields
+                        email = row.get('email', '').strip()
+                        role_title = row.get('role', '').strip().lower()  # Normalize role to lowercase
                         
-                        # Check if user already exists
-                        email = row['email'].strip().lower()
+                        if not email or not role_title:
+                            errors.append(f"Row {csv_reader.line_num}: Missing required fields")
+                            skipped_rows += 1
+                            continue
+                        
+                        # Check if role exists (case-insensitive)
+                        try:
+                            # Use case-insensitive query
+                            role = Role.objects.filter(title__iexact=role_title).first()
+                            if not role:
+                                raise Role.DoesNotExist
+                        except Role.DoesNotExist:
+                            errors.append(f"Row {csv_reader.line_num}: Role '{role_title}' does not exist")
+                            skipped_rows += 1
+                            continue
+                        
+                        # Get or create user
+                        first_name = row.get('first_name', '').strip()
+                        last_name = row.get('last_name', '').strip()
+                        graduating_year = row.get('graduating_year', '').strip()
+                        
                         try:
                             user = User.objects.get(email=email)
-                            # User exists, check if person exists
-                            try:
-                                person = Person.objects.get(user=user)
-                                # Update person if they exist
-                                person.role = role
-                                if 'graduating_year' in row and row['graduating_year']:
-                                    try:
-                                        person.graduating_year = int(row['graduating_year'])
-                                    except ValueError:
-                                        error_messages.append(f"Row {reader.line_num}: Invalid graduating year '{row['graduating_year']}'")
-                                person.save()
-                                success_count += 1
-                            except Person.DoesNotExist:
-                                # Create new person record for existing user
-                                person = Person.objects.create(
-                                    user=user,
-                                    role=role,
-                                    graduating_year=int(row['graduating_year']) if row.get('graduating_year') else None
-                                )
-                                success_count += 1
+                            # Update existing user info if provided
+                            if first_name and not user.first_name:
+                                user.first_name = first_name
+                            if last_name and not user.last_name:
+                                user.last_name = last_name
+                            user.save()
+                            
                         except User.DoesNotExist:
                             if create_users:
-                                # Create a new user and person
-                                password = generate_password()
-                                
-                                # Create username from email or first/last name
-                                if 'first_name' in row and 'last_name' in row and row['first_name'] and row['last_name']:
-                                    base_username = f"{row['first_name'].lower()}.{row['last_name'].lower()}"
-                                else:
-                                    base_username = email.split('@')[0]
-                                
-                                # Ensure username is unique
-                                username = base_username
-                                count = 1
+                                # Create new user
+                                username = email.split('@')[0]
+                                # Make sure username is unique
+                                base_username = username
+                                counter = 1
                                 while User.objects.filter(username=username).exists():
-                                    username = f"{base_username}{count}"
-                                    count += 1
+                                    username = f"{base_username}{counter}"
+                                    counter += 1
+                                    
+                                # Generate password
+                                password = generate_password()
                                 
                                 # Create user
                                 user = User.objects.create_user(
                                     username=username,
                                     email=email,
-                                    password=password
+                                    password=password,
+                                    first_name=first_name,
+                                    last_name=last_name
                                 )
                                 
-                                # Add first and last name if provided
-                                if 'first_name' in row:
-                                    user.first_name = row['first_name']
-                                if 'last_name' in row:
-                                    user.last_name = row['last_name']
-                                user.save()
-                                
-                                # Create person
-                                person = Person.objects.create(
-                                    user=user,
-                                    role=role,
-                                    graduating_year=int(row['graduating_year']) if row.get('graduating_year') else None,
-                                )
-                                
-                                # Add to new users list
-                                new_users.append({
+                                created_users.append({
                                     'email': email,
                                     'username': username,
                                     'password': password,
-                                    'full_name': user.get_full_name() or username,
-                                    'role': role_title
+                                    'name': f"{first_name} {last_name}".strip()
                                 })
-                                
-                                success_count += 1
                             else:
-                                raise ValidationError(f"Row {reader.line_num}: User with email {email} not found and create_users is not enabled")
+                                errors.append(f"Row {csv_reader.line_num}: User with email '{email}' does not exist and create_users is not checked")
+                                skipped_rows += 1
+                                continue
+                        
+                        # Get or create person
+                        person, created = Person.objects.get_or_create(
+                            user=user,
+                            defaults={
+                                'role': role,
+                                'graduating_year': graduating_year if graduating_year else None
+                            }
+                        )
+                        
+                        if not created:
+                            # Update existing person
+                            if graduating_year:
+                                person.graduating_year = graduating_year
+                            person.role = role
+                            person.save()
+                            updated_people += 1
                     
                     except Exception as e:
-                        error_messages.append(f'Row {reader.line_num}: Error - {str(e)}')
+                        errors.append(f"Row {csv_reader.line_num}: {str(e)}")
+                        skipped_rows += 1
                 
                 # Show results
-                if success_count:
-                    self.message_user(request, f'Successfully processed {success_count} people')
+                if created_users:
+                    messages.success(request, f"Created {len(created_users)} new users")
+                    
+                    # Provide CSV download for created users
+                    csv_output = StringIO()
+                    csv_writer = csv.writer(csv_output)
+                    csv_writer.writerow(['Username', 'Email', 'Password', 'Name'])
+                    for user_data in created_users:
+                        csv_writer.writerow([
+                            user_data['username'], 
+                            user_data['email'],
+                            user_data['password'],
+                            user_data['name']
+                        ])
+                    
+                    # Store the CSV data in the session for download
+                    request.session['user_import_csv'] = csv_output.getvalue()
+                    
+                    # Link to download the CSV
+                    download_url = reverse('admin:download_imported_users')
+                    messages.info(request, format_html(
+                        'Download <a href="{}">user credentials CSV</a> to share with new users.', 
+                        download_url
+                    ))
                 
-                for error in error_messages:
-                    self.message_user(request, error, level=messages.WARNING)
-                
-                # Store import results in session for download
-                request.session['import_results'] = new_users
-                
-                # If we have new users, show the results page
-                if new_users:
-                    context = {'new_users': new_users}
-                    return render(request, "admin/import_results.html", context)
-                
-                return HttpResponseRedirect("../")
+                if updated_people > 0:
+                    messages.success(request, f"Updated {updated_people} existing people")
+                    
+                if skipped_rows > 0:
+                    messages.warning(request, f"Skipped {skipped_rows} rows due to errors")
+                    
+                for error in errors[:10]:  # Show first 10 errors
+                    messages.error(request, error)
+                    
+                if len(errors) > 10:
+                    messages.error(request, f"... and {len(errors) - 10} more errors")
+                    
+                return HttpResponseRedirect(reverse('admin:experiences_person_changelist'))
+        else:
+            form = CSVUploadForm()
             
-            except Exception as e:
-                self.message_user(request, f'Error processing CSV file: {str(e)}', level=messages.ERROR)
-                return HttpResponseRedirect("../")
-        
-        form = CsvImportForm()
-        # Change the help text for the form
-        form.fields['csv_file'].help_text = 'The file should have email and role columns. Optional columns: first_name, last_name, graduating_year'
-        payload = {
-            "form": form,
-            "title": "Import People from CSV"
+        context = {
+            'title': 'Import People from CSV',
+            'form': form,
+            'opts': self.model._meta,
         }
-        return render(request, "admin/people_csv_form.html", payload)
+        return render(request, 'admin/people_csv_form.html', context)
+    
+    def import_guardians_csv_view(self, request):
+        """View to import guardian-student relations from CSV file."""
+        if request.method == 'POST':
+            form = CSVUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                csv_file = request.FILES['csv_file']
+                
+                # Process the CSV file
+                csv_file_wrapper = TextIOWrapper(csv_file.file, encoding='utf-8-sig')
+                csv_reader = csv.DictReader(csv_file_wrapper)
+                
+                # Validate CSV structure
+                required_fields = ['guardian_email', 'student_email', 'relationship']
+                for field in required_fields:
+                    if field not in csv_reader.fieldnames:
+                        messages.error(request, f"CSV file missing required '{field}' column")
+                        return HttpResponseRedirect(request.path)
+                
+                # Track results for display
+                created_relations = 0
+                skipped_rows = 0
+                errors = []
+                
+                # Process each row
+                for row in csv_reader:
+                    try:
+                        # Check required fields
+                        guardian_email = row.get('guardian_email', '').strip()
+                        student_email = row.get('student_email', '').strip()
+                        relationship = row.get('relationship', '').strip()
+                        
+                        if not guardian_email or not student_email or not relationship:
+                            errors.append(f"Row {csv_reader.line_num}: Missing required fields")
+                            skipped_rows += 1
+                            continue
+                        
+                        # Check if users exist
+                        try:
+                            guardian_user = User.objects.get(email=guardian_email)
+                        except User.DoesNotExist:
+                            errors.append(f"Row {csv_reader.line_num}: Guardian with email '{guardian_email}' not found")
+                            skipped_rows += 1
+                            continue
+                            
+                        try:
+                            student_user = User.objects.get(email=student_email)
+                        except User.DoesNotExist:
+                            errors.append(f"Row {csv_reader.line_num}: Student with email '{student_email}' not found")
+                            skipped_rows += 1
+                            continue
+                        
+                        # Check if people exist
+                        try:
+                            guardian = Person.objects.get(user=guardian_user)
+                        except Person.DoesNotExist:
+                            errors.append(f"Row {csv_reader.line_num}: Guardian person record for '{guardian_email}' not found")
+                            skipped_rows += 1
+                            continue
+                            
+                        try:
+                            student = Person.objects.get(user=student_user)
+                        except Person.DoesNotExist:
+                            errors.append(f"Row {csv_reader.line_num}: Student person record for '{student_email}' not found")
+                            skipped_rows += 1
+                            continue
+                        
+                        # Create or update the relationship
+                        relation, created = GuardianStudent.objects.get_or_create(
+                            guardian=guardian,
+                            student=student,
+                            defaults={'relationship': relationship}
+                        )
+                        
+                        if not created:
+                            relation.relationship = relationship
+                            relation.save()
+                        
+                        created_relations += 1
+                    
+                    except Exception as e:
+                        errors.append(f"Row {csv_reader.line_num}: {str(e)}")
+                        skipped_rows += 1
+                
+                # Show results
+                if created_relations > 0:
+                    messages.success(request, f"Created/updated {created_relations} guardian-student relationships")
+                    
+                if skipped_rows > 0:
+                    messages.warning(request, f"Skipped {skipped_rows} rows due to errors")
+                    
+                for error in errors[:10]:  # Show first 10 errors
+                    messages.error(request, error)
+                    
+                if len(errors) > 10:
+                    messages.error(request, f"... and {len(errors) - 10} more errors")
+                    
+                return HttpResponseRedirect(reverse('admin:experiences_guardianstulient_changelist'))
+        else:
+            form = CSVUploadForm()
+            
+        context = {
+            'title': 'Import Guardian-Student Relations',
+            'form': form,
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/people_csv_form.html', context)
+    
+    def download_csv_template(self, request):
+        """Provide a downloadable example CSV template."""
+        csv_content = "email,role,first_name,last_name,graduating_year\n"
+        csv_content += "john.doe@example.com,Student,John,Doe,2026\n"
+        csv_content += "jane.smith@example.com,Facilitator,Jane,Smith,"
+        
+        response = HttpResponse(csv_content, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="people_import_template.csv"'
+        return response
+    
+    def download_guardian_csv_template(self, request):
+        """Provide a downloadable guardian relationship CSV template."""
+        csv_content = "guardian_email,student_email,relationship\n"
+        csv_content += "parent@example.com,student@example.com,Parent\n"
+        csv_content += "guardian@example.com,student@example.com,Guardian"
+        
+        response = HttpResponse(csv_content, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="guardian_relationships_template.csv"'
+        return response
+    
+    def download_imported_users(self, request):
+        """Download CSV with user credentials for newly created users."""
+        csv_data = request.session.get('user_import_csv', '')
+        if not csv_data:
+            messages.error(request, "No user data available for download")
+            return HttpResponseRedirect(reverse('admin:experiences_person_changelist'))
+        
+        response = HttpResponse(csv_data, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="imported_user_credentials.csv"'
+        
+        # Clear the session data
+        del request.session['user_import_csv']
+        
+        return response
 
-    @admin.display(description='Full Name')
     def get_full_name(self, obj):
         return obj.user.get_full_name() or obj.user.username
 
-    @admin.display(description='Guardians')
     def get_guardians(self, obj):
         guardians = obj.guardians.all()
         if not guardians:
             return "-"
         return ", ".join([str(g) for g in guardians])
 
-    @admin.display(description='Students')
     def get_students(self, obj):
         students = obj.students.all()
         if not students:
@@ -563,9 +517,9 @@ class PersonAdmin(VisibilityModelAdmin):
         return obj and obj.user == request.user
 
     def has_delete_permission(self, request, obj=None):
+        # Only superusers and administrators can delete
         if not obj:  # This is the list view
             return True
-        # Only superusers and administrators can delete
         return request.user.is_superuser or request.user.groups.filter(name='Administrators').exists()
 
     def has_view_permission(self, request, obj=None):
@@ -589,12 +543,12 @@ class PersonAdmin(VisibilityModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser and not request.user.groups.filter(name='Administrators').exists():
-            return ('user',)  # Regular users can't change the user field
+            return ('user',)  # Regular users can't change the user field        
         return super().get_readonly_fields(request, obj)
 
 
-@admin.register(Group)
-class GroupAdmin(VisibilityModelAdmin):
+@admin.register(Group)                          
+class GroupAdmin(VisibilityModelAdmin):                    # Provide CSV download for created users
     list_display = ('name', 'visibility_badge', 'get_facilitators', 'description', 'core_competency_1', 'core_competency_2', 'core_competency_3', 'last_modified')
     search_fields = ('name', 'description')
     list_filter = ('is_public', 'core_competency_1', 'core_competency_2', 'core_competency_3')
@@ -608,7 +562,6 @@ class GroupAdmin(VisibilityModelAdmin):
             role__title='Facilitator', 
             participation__group=obj
         ).distinct()
-        
         # Return a comma-separated list of facilitator names
         if facilitators.exists():
             return ", ".join([f.user.get_full_name() or f.user.username for f in facilitators])
@@ -635,17 +588,13 @@ class GroupAdmin(VisibilityModelAdmin):
             return False
 
     def has_delete_permission(self, request, obj=None):
+        # Only superusers and administrators can delete
         if not obj:  # This is the list view
             return True
-        # Only superusers and administrators can delete
         return request.user.is_superuser or request.user.groups.filter(name='Administrators').exists()
 
-    def get_queryset(self, request):
-        # Everyone can see all groups
-        return super().get_queryset(request)
 
-
-@admin.register(Participation)
+@admin.register(Participation)                
 class ParticipationAdmin(admin.ModelAdmin):
     list_display = ('person', 'group', 'hours', 'special_recognition', 'years_display', 'elementary', 'high')
     list_filter = ('elementary', 'high', 'group')
@@ -653,7 +602,6 @@ class ParticipationAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.JSONField: {'widget': YearSelectorWidget()},
     }
-
     def years_display(self, obj):
         return ", ".join(map(str, obj.years))
     years_display.short_description = "Years"
@@ -678,22 +626,20 @@ class PathwaysAdmin(admin.ModelAdmin):
     list_filter = ('is_active',)
     search_fields = ('title', 'description')
 
-@admin.register(Badges)
-class BadgesAdmin(admin.ModelAdmin):
-    list_display = ('title', 'description', 'is_active')
-    list_filter = ('is_active',)
-    search_fields = ('title', 'description')
 
 @admin.register(ModelVisibilitySettings)
 class ModelVisibilitySettingsAdmin(admin.ModelAdmin):
     list_display = ('model_name', 'access_level', 'last_modified', 'modified_by')
     list_filter = ('access_level',)
     readonly_fields = ('last_modified', 'modified_by')
-    
+
     def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
         obj.modified_by = request.user
         cache.delete(f'model_visibility_{obj.model_name}')  # Clear cache on save
-        super().save_model(request, obj, form, change)
 
-    def has_delete_permission(self, request, obj=None):
-        return False  # Prevent deletion of visibility settings
+@admin.register(Badges)
+class BadgesAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('title', 'description')

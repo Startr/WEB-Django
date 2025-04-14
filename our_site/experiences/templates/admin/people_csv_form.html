@@ -44,6 +44,8 @@
         <pre>email,role,first_name,last_name,graduating_year
 john.doe@example.com,Student,John,Doe,2026
 jane.smith@example.com,Facilitator,Jane,Smith,</pre>
+        
+        <p><a href="{% url 'admin:download_people_csv_template' %}" class="button" style="margin-top: 10px;">Download Example CSV Template</a></p>
 
         <div class="submit-row">
             <input type="submit" class="default" value="{% trans 'Upload CSV' %}">

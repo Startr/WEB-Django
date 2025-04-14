@@ -4,12 +4,12 @@
 {% block object-tools-items %}
     {{ block.super }}
     <li>
-        <a href="{% url 'admin:import-people-csv' %}" class="addlink">
+        <a href="{% url 'admin:experiences_person_import-people-csv' %}" class="addlink">
             {% trans 'Import People' %}
         </a>
     </li>
     <li>
-        <a href="{% url 'admin:import-guardians-csv' %}" class="addlink">
+        <a href="{% url 'admin:experiences_person_import-guardians-csv' %}" class="addlink">
             {% trans 'Import Guardian-Student Relations' %}
         </a>
     </li>
