@@ -71,7 +71,7 @@
                         {% endif %}
                         <div class="student-info">
                             <strong>{{ guardian.user.get_full_name|default:guardian.user.username }}</strong>
-                            <div>Relationship: {{ guardian_relationships|get_item:guardian.id|default:"Student" }}</div>
+                            <div>Relationship: {{ guardian_relationships|get_item:guardian.id|default:"student" }}</div>
                             <div>
                                 <a href="{% url 'experiences:person_detail' guardian.id %}">View Profile</a>
                             </div>
